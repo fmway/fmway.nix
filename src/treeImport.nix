@@ -43,10 +43,10 @@
   if isPath self then
     if hasSuffix' ".nix" self then
       let
-        res = doImport self (variables // {
+        res = doImport self ({
           inherit root super;
           self = getAttr' get root;
-        });
+        } // variables);
         aliased = getAlias alias self;
       in if isNull aliased then res else aliased res
     else readFile self
