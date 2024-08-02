@@ -22,10 +22,14 @@
     splitString
     hasPrefix
     listToAttrs
+    flatten
     removePrefix
     removeSuffix
     ;
 in rec {
+
+  firstChar = str:
+    head (filter (x: x != "") (flatten (split "(.)" str)));
   
   # get attr by array e.g getAttr' [ "kamu" "asu" ] { kamu = { asu = 8; dia = 10; }; lalu = true; } => 8
   getAttr' = key: obj:
