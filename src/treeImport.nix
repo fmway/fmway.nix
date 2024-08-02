@@ -41,15 +41,13 @@
 
   toImport = self: super: root: variables: alias: get: 
   if isPath self then
-    if hasSuffix' ".nix" self then
-      let
-        res = doImport self ({
-          inherit root super;
-          self = getAttr' get root;
-        } // variables);
-        aliased = getAlias alias self;
-      in if isNull aliased then res else aliased res
-    else readFile self
+    let
+      res = if hasSuffix' ".nix" self then doImport self ({
+        inherit root super;
+        self = getAttr' get root;
+      } // variables) else readFile self;
+      aliased = getAlias alias self;
+    in if isNull aliased then res else aliased res
   else if ! isAttrs self then
     self
   else let
