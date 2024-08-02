@@ -69,7 +69,7 @@
       isDefault = name == "default" && isPath val;
       gett = if isDefault then get else get ++ [name];
       sup = if isDefault then super else getAttr' get root;
-      res = toImport val sup root var ali gett;
+      res = toImport val ({ inherit super; } // sup) root var ali gett;
     in recursiveUpdate acc (if isDefault then res else { "${name}" = res; })) {} (attrNames obj);
   in result;
 
