@@ -112,7 +112,7 @@
     in recursiveUpdate acc (toObj splitted path)) {} filteredByIncludes;
     result = toImport res null result variables [] [];
   # in toImport res null res variables [];
-  in {inherit res result; };
+  in result;
 
   treeImport = obj: if obj ? folder then
     excludeItems ["__functor"] (treeImport' obj)
