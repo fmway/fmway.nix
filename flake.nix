@@ -5,6 +5,7 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
   };
 
-  outputs = { self, nixpkgs }:
-    import ./. { inherit (nixpkgs) lib; };
+  outputs = { self, nixpkgs }: {
+    fmway = import ./. { inherit (nixpkgs) lib; };
+  };
 }
