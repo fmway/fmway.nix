@@ -1,11 +1,13 @@
 { lib ? (import <nixpkgs> {}).lib }: let
   treeImport = import ./src/treeImport.nix rec {
     inherit lib;
+    allFunc = result;
     root = let
-      small = import ./src/__util/small-functions.nix { inherit lib; };
-      for-import = import ./src/__util/for-import.nix { inherit lib root; };
-      tree-path = import ./src/tree-path.nix { inherit lib; };
-      matchers = import ./src/matchers.nix { inherit lib root; };
+      var = { inherit lib root allFunc; };
+      small = import ./src/__util/small-functions.nix var;
+      for-import = import ./src/__util/for-import.nix var;
+      tree-path = import ./src/tree-path.nix var;
+      matchers = import ./src/matchers.nix var;
     in small // for-import // {
       inherit tree-path matchers;
     };
