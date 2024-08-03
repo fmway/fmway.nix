@@ -143,13 +143,13 @@ in rec {
   stringMultiply = str: count:
     foldl' (acc: _: str + acc) "" (lists.range 1 count);
 
-  excludeArray = excludes: inputs: let
+  excludeList = excludes: inputs: let
     fixed = map (x: toString x) excludes;
     filtering = x: ! any (y: x == y) fixed;
   in filter filtering inputs;
 
-  excludeObj = excludes: inputs: let
-    names = excludeArray excludes (attrNames inputs);
+  excludeAttr = excludes: inputs: let
+    names = excludeList excludes (attrNames inputs);
     func = acc: name: {
       "${name}" = inputs.${name};
     } // acc;
@@ -157,10 +157,10 @@ in rec {
 
   excludeItems = excludes: inputs:
   if isList inputs then
-    excludeArray excludes inputs
+    excludeList excludes inputs
   else if isAttrs inputs then
-    excludeObj excludes inputs
-  else abort "Tolol bet bjir, lu mau exclude apaan :(";
+    excludeAttr excludes inputs
+  else throw "Exclude items only support list and attrs :(";
 
   excludePrefix = excludes: prefixs: let
     fixed = map (x: toString x) excludes;

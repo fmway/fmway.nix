@@ -4,6 +4,7 @@
     length
     head
     isPath
+    typeOf
     attrNames
     readFile
     tail
@@ -112,9 +113,13 @@
   # in toImport res null res variables [];
   in result;
 
-  treeImport = obj: if obj ? folder then
-    excludeItems ["__functor"] (treeImport' obj)
-  else
-    recursiveUpdate obj { __functor = self: args: recursiveUpdate (excludeItems ["__functor"] self) (treeImport args); };
+  treeImport = obj: if isPath obj then
+    treeImport { folder = obj; }
+  else if isAttrs obj then
+    if obj ? folder then
+      excludeItems ["__functor"] (treeImport' obj)
+    else
+      recursiveUpdate obj { __functor = self: args: recursiveUpdate (excludeItems ["__functor"] self) (treeImport args); }
+  else throw "treeImport only support path and attrs, not ${typeOf obj}";
 
 in treeImport

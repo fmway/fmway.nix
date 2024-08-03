@@ -19,7 +19,7 @@
       value = if hasAttr name variables then variables.${name}
         else if hasAttr name root then root.${name}
         else if name == "lib" then lib
-        else abort "Jangan tolol bang! argument ${name} gak ada :(";
+        else throw "(getRequiredArgs) argument ${name} not found :(";
     }) argNames);
   in result;
 in {

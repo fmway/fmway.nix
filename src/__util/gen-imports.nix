@@ -1,9 +1,11 @@
 { root, lib, ... }: let
   inherit (builtins)
     foldl'
+    isPath
   ;
   inherit (lib)
     path
+    throwIfNot
   ;
   inherit (root)
     getNixs
@@ -13,32 +15,51 @@
   ;
 in rec {
   # generate array for imports keyword using getNixs
-  genImports' = folder: excludes: let
+  genImports' = folder:
+    throwIfNot (isPath folder)
+      "genImports' required argument with type path"
+  (excludes:
+  let
     list = getNixs folder;
     excluded = excludeItems excludes list;
   in foldl' (acc: curr: [
     (path.append folder curr)
-  ] ++ acc) [] excluded;
+  ] ++ acc) [] excluded);
 
-  genImports = folder: genImports' folder [];
+  genImports = folder:
+    throwIfNot (isPath folder)
+      "genImports required argument with type path"
+    genImports' folder [];
 
   # generate array for imports keyword using getDefaultNixs
-  genDefaultImports' = folder: excludes: let
+  genDefaultImports' = folder: 
+    throwIfNot (isPath folder)
+      "genDefaultImports' required argument with type path"
+  (excludes: let
     list = getDefaultNixs folder;
     excluded = excludeItems excludes list;
   in foldl' (acc: curr: [
     (path.append folder curr)
-  ] ++ acc) [] excluded;
+  ] ++ acc) [] excluded);
 
-  genDefaultImports = folder: genDefaultImports' folder [];
+  genDefaultImports = folder:
+    throwIfNot (isPath folder)
+      "genDefaultImports required argument with type path"
+    genDefaultImports' folder [];
 
   # generate array for imports keyword using getNixsWithDefault
-  genImportsWithDefault' = folder: excludes: let
+  genImportsWithDefault' = folder: 
+    throwIfNot (isPath folder)
+      "genImportsWithDefault required argument with type path"
+  (excludes: let
     list = getNixsWithDefault folder;
     excluded = excludeItems excludes list;
   in foldl' (acc: curr: [
     (path.append folder curr)
-  ] ++ acc) [] excluded;
+  ] ++ acc) [] excluded);
 
-  genImportsWithDefault = folder: genImportsWithDefault' folder [];
+  genImportsWithDefault = folder:
+    throwIfNot (isPath folder)
+      "genImportsWithDefault required argument with type path"
+    genImportsWithDefault' folder [];
 }

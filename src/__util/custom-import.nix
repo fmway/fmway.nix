@@ -25,7 +25,6 @@
   in foldl' (acc: curr: {
     "${basename curr}" = doImport (path.append folder curr) variables;
   } // acc) initial filtered;
-in rec {
 
   # generate object for single import for all <file>.nix exclude default.nix
   customImport' = var: let
@@ -41,12 +40,6 @@ in rec {
     list = getNixs folder;
   in templateSingleImport { inherit folder variables list excludes; initial = {}; };
 
-  # customImport = var: customImport' var {};
-  customImport = var: if (var ? folder) || isPath var then
-    excludeItems ["__functor"] (customImport' var)
-  else
-    recursiveUpdate var { __functor = self: args: recursiveUpdate (excludeItems ["__functor"] self) (customImport args); };
-  
   # generate object for single import for all directory that have default.nix
   customDefaultImport' = var: let
     folder = if isPath var then var else var.folder;
@@ -60,12 +53,6 @@ in rec {
   else let
     list = getDefaultNixs folder;
   in templateSingleImport { inherit folder variables list excludes; initial = {}; };
-
-  # customDefaultImport = var: customDefaultImport' var {};
-  customDefaultImport = var: if (var ? folder) || isPath var then
-    excludeItems ["__functor"] (customDefaultImport' var)
-  else
-    recursiveUpdate var { __functor = self: args: recursiveUpdate (excludeItems ["__functor"] self) (customDefaultImport args); };
 
   # generate object for single import for all <file>.nix except default.nix also all directory that have default.nix
   customImportWithDefault' = var: let
@@ -81,7 +68,18 @@ in rec {
     list = getNixsWithDefault folder;
   in templateSingleImport { inherit folder variables list excludes; initial = {}; };
 
-  # customImportWithDefault = var: customImportWithDefault' var {};
+in rec {
+
+  customImport = var: if (var ? folder) || isPath var then
+    excludeItems ["__functor"] (customImport' var)
+  else
+    recursiveUpdate var { __functor = self: args: recursiveUpdate (excludeItems ["__functor"] self) (customImport args); };
+  
+  customDefaultImport = var: if (var ? folder) || isPath var then
+    excludeItems ["__functor"] (customDefaultImport' var)
+  else
+    recursiveUpdate var { __functor = self: args: recursiveUpdate (excludeItems ["__functor"] self) (customDefaultImport args); };
+
   customImportWithDefault = var: if (var ? folder) || isPath var then
     excludeItems ["__functor"] (customImportWithDefault' var)
   else
