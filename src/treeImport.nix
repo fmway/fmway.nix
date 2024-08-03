@@ -6,7 +6,6 @@
     isPath
     typeOf
     attrNames
-    readFile
     tail
     isAttrs
     filter
@@ -15,6 +14,7 @@
   inherit (lib)
     recursiveUpdate
     splitString
+    fileContents
     take
     last
   ;
@@ -46,7 +46,7 @@
       res = if hasSuffix' ".nix" self then doImport self ({
         inherit root super;
         self = getAttr' get root;
-      } // variables) else readFile self;
+      } // variables) else fileContents self;
       aliased = getAlias alias self;
     in if isNull aliased then res else aliased res
   else if ! isAttrs self then

@@ -12,7 +12,6 @@
     length
     isString
     tail
-    readFile
     elemAt
     split
     ;
@@ -21,6 +20,7 @@
     hasSuffix
     splitString
     hasPrefix
+    fileContents
     listToAttrs
     flatten
     removePrefix
@@ -46,7 +46,7 @@ in rec {
       res = split "^([^# ][^= ]+)=(.*)$" str;
     in if isNull res || length res <= 1 then null else elemAt res 1; # key=value => [ key value ]
     no-empty = x: x != ""; # env with no value will be ignored
-    listMaybeEnv = splitString "\n" (readFile file);
+    listMaybeEnv = splitString "\n" (fileContents file);
     list = filter (x: !isNull x) (map parseEnv (filter no-empty listMaybeEnv));
   in listToAttrs (map (curr: {
     name = elemAt curr 0;
