@@ -3,7 +3,7 @@
     inherit lib;
     allFunc = result;
     root = let
-      var = { inherit lib root allFunc; };
+      var = { inherit lib root; };
       small = import ./src/__util/small-functions.nix var;
       for-import = import ./src/__util/for-import.nix var;
       tree-path = import ./src/tree-path.nix var;
