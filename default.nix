@@ -12,7 +12,7 @@
   };
   result = treeImport {
    folder = ./src;
-   variables = { inherit lib; };
+   variables = { inherit lib; allFunc = result; };
    depth = 0;
   };
 in result

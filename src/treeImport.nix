@@ -1,6 +1,5 @@
-{ root, lib, allFunc ? root, ... }: let
+{ root, lib, allFunc, ... }: let
   inherit (builtins)
-    concatStringsSep
     length
     head
     isPath
