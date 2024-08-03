@@ -1,7 +1,6 @@
 { lib ? (import <nixpkgs> {}).lib }: let
   treeImport = import ./src/treeImport.nix rec {
     inherit lib;
-    allFunc = result;
     root = let
       var = { inherit lib root; };
       small = import ./src/__util/small-functions.nix var;
@@ -14,7 +13,7 @@
   };
   result = treeImport {
    folder = ./src;
-   variables = { inherit lib; allFunc = result; };
+   variables = { inherit lib; };
    depth = 0;
   };
 in result

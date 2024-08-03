@@ -1,4 +1,4 @@
-{ root, lib, allFunc, ... }: let
+{ root, lib, allFunc ? root, ... }: let
   inherit (builtins)
     length
     head
