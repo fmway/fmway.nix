@@ -13,7 +13,6 @@
   inherit (lib)
     recursiveUpdate
     splitString
-    fileContents
     take
     last
   ;
@@ -27,7 +26,6 @@
     excludePrefix
     removePrefix'
     removeExtension
-    hasSuffix'
     getAttr'
   ;
 
@@ -36,7 +34,7 @@
   in if length filtered >= 1 then (last filtered).alias else null; 
 
   getExt = arr: let
-    filtered = filter (x: (x ? _type) && x._type == "matcher-by-extension") arr;
+    filtered = filter (x: (x ? _type) && (x._type == "matcher-by-extension" || x._type == "matcher-by-nix")) arr;
   in map (x: x.selector) filtered;
 
   getMatcher = matchers: path: let
@@ -80,7 +78,7 @@
   in result;
 
   treeImport' = { folder, variables ? {}, depth ? 1, excludes ? [], includes ? [] }: let
-    includess = [ (matchers.extension "nix" { read = path: variables: doImport path variables; }) ] ++ includes;
+    includess = [ matchers.nix ] ++ includes;
     # ext = [ "nix" ] ++ (getExt includes);
     ext = getExt includess;
     toObj = arr: path:
