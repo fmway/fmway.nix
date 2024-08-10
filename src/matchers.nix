@@ -1,5 +1,9 @@
-{ root, ... }: let
-
+{ root, lib, ... }: let
+  inherit (builtins)
+    isString
+    isAttrs
+    mapAttrs
+  ;
   inherit (root)
     hasSuffix'
     hasRegex
@@ -7,70 +11,35 @@
     hasPrefix'
     getFilename
   ;
-in {
+
+  inherit (lib)
+    fileContents
+  ;
   
-  # match by regex
-  regex = let
-    func = re: path: hasRegex re (getFilename path);
-  in rec {
-    _type = "matcher-by-regex";
-    isMatchedIn = path: func selector path;
-    selector = "(.*)";
-    __functor = self: selector: self // {
-      inherit selector;
-      isMatchedIn = path: func selector path;
-    };
+  matchers = {
+    regex = re: path: hasRegex re (getFilename path);
+    extension = ext: path: hasSuffix' ".${ext}" (getFilename path);
+    suffix = suf: path: hasSuffix' suf (getFilename path);
+    filename = file: path: hasFilename file path;
+    prefix = pre: path: hasPrefix' pre (getFilename path);
   };
 
-  # match by extension
-  extension = selector: let
-    func = ext: path: hasSuffix' ".${ext}" (getFilename path);
-  in {
-    inherit selector;
-    _type = "matcher-by-extension";
-    isMatchedIn = path: func selector path;
-    __functor = self: selector: self // {
-      inherit selector;
-      isMatchedIn = path: func selector path;
-    };
-  };
-
-  # match by suffix
-  suffix = selector: let
-    func = suf: path: hasSuffix' suf (getFilename path);
-  in {
-    inherit selector;
-    _type = "matcher-by-suffix";
-    isMatchedIn = path: func selector path;
-    __functor = self: selector: self // {
-      inherit selector;
-      isMatchedIn = path: func selector path;
-    };
-  };
-
-  # match by filename
-  filename = selector: let
-    func = file: path: hasFilename file path;
-  in {
-    inherit selector;
-    _type = "matcher-by-filename";
-    isMatchedIn = path: func selector path;
-    __functor = self: selector: self // {
-      inherit selector;
-      isMatchedIn = path: func selector path;
-    };
-  };
-
-  # match by prefix
-  prefix = selector: let
-    func = pre: path: hasPrefix' pre (getFilename path);
-  in {
-    inherit selector;
-    _type = "matcher-by-prefix";
-    isMatchedIn = path: func selector path;
-    __functor = self: selector: self // {
-      inherit selector;
-      isMatchedIn = path: func selector path;
-    };
-  };
-}
+in mapAttrs (key: value: let
+  func = value;
+in selector: {
+  _type = "matcher-by-${key}";
+  isMatchedIn = path: func selector path;
+  read = path: variables: fileContents path;
+  __functor = self: args:
+    self // (
+      if isAttrs args then let
+          obj = {
+            isMatchedIn = path: func obj.selector path;
+            selector = if args ? selector then args.selector else selector;
+          };
+        in args // obj
+      else if isString args then {
+        selector = args;
+        isMatchedIn = path: func args path;
+      } else throw "${self._type} must be string or attrs");
+}) matchers

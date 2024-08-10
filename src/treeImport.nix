@@ -33,27 +33,35 @@
 
   getAlias = alias: path: let
     filtered = filter (x: x.match.isMatchedIn path && x ? alias) alias;
-  in if length filtered >= 1 then (head filtered).alias else null; 
+  in if length filtered >= 1 then (last filtered).alias else null; 
 
   getExt = arr: let
     filtered = filter (x: (x ? _type) && x._type == "matcher-by-extension") arr;
   in map (x: x.selector) filtered;
 
-  toImport = self: super: root: variables: alias: get: 
+  getMatcher = matchers: path: let
+    filtered = filter (x: x.isMatchedIn path) matchers;
+  in if length filtered >= 1 then last filtered else null;
+
+  toImport = self: super: root: includes: variables: alias: get: 
   if isPath self then
     let
-      res = if hasSuffix' ".nix" self then doImport self ({
-        inherit root super;
-        self = getAttr' get root;
-      } // variables) else fileContents self;
+      matcher = getMatcher includes self;
       aliased = getAlias alias self;
+      res = 
+        if ! isNull matcher then
+          matcher.read self ({
+            inherit root super;
+            self = getAttr' get root;
+          } // variables)
+        else throw "error boss";
     in if isNull aliased then res else aliased res
   else if ! isAttrs self then
     self
   else let
     var = allFunc // variables // (
       if self ? ".var" then
-        toImport self.".var" (getAttr' get root) root variables alias (get ++ [".var"])
+        toImport self.".var" (getAttr' get root) root includes variables alias (get ++ [".var"])
       else {}
     );
     ali = (
@@ -67,12 +75,14 @@
       isDefault = name == "default" && isPath val;
       gett = if isDefault then get else get ++ [name];
       sup = if isDefault then super else getAttr' get root;
-      res = toImport val ({ inherit super; } // sup) root var ali gett;
+      res = toImport val ({ inherit super; } // sup) root includes var ali gett;
     in recursiveUpdate acc (if isDefault then res else { "${name}" = res; })) {} (attrNames obj);
   in result;
 
   treeImport' = { folder, variables ? {}, depth ? 1, excludes ? [], includes ? [] }: let
-    ext = [ "nix" ] ++ (getExt includes);
+    includess = [ (matchers.extension "nix" { read = path: variables: doImport path variables; }) ] ++ includes;
+    # ext = [ "nix" ] ++ (getExt includes);
+    ext = getExt includess;
     toObj = arr: path:
       if length arr < 1 then
         path
@@ -100,7 +110,7 @@
 
     filteredByIncludes = filter (path: let
       filtered = filter (match:
-        match.isMatchedIn path) ([(matchers.extension "nix")] ++ includes);
+        match.isMatchedIn path) includess;
     in
       length filtered >= 1) filteredByExcludes;
 
@@ -108,7 +118,7 @@
       splitted = splitString "/" curr;
       path = folder + "/${curr}";
     in recursiveUpdate acc (toObj splitted path)) {} filteredByIncludes;
-    result = toImport res null result variables [] [];
+    result = toImport res null result includess variables [] [];
   # in toImport res null res variables [];
   in result;
 
