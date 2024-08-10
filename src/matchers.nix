@@ -30,14 +30,14 @@ in selector: {
   _type = "matcher-by-${key}";
   isMatchedIn = path: func selector path;
   read = path: variables: fileContents path;
+  inherit selector;
   __functor = self: args:
     self // (
-      if isAttrs args then let
-          obj = {
-            isMatchedIn = path: func obj.selector path;
-            selector = if args ? selector then args.selector else selector;
-          };
-        in args // obj
+      if isAttrs args then 
+        args // rec {
+          isMatchedIn = path: func selector path;
+          selector = if args ? selector then args.selector else self.selector;
+        }
       else if isString args then {
         selector = args;
         isMatchedIn = path: func args path;
