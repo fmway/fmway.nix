@@ -28,15 +28,16 @@
               if devbox ? shell && devbox.shell ? scripts && devbox.shell.scripts ? install then
                 [ devbox.shell.scripts.install ]
               else [];
-            ob =
-              if install == [] || init == [] then
-                obj
-              else
-                recursiveUpdate {
-                  idx.workspace.onStart = {
-                    devbox-init = concatStringsSep " ; " init;
-                    devbox-install = concatStringsSep " ; " install;
-                  };
+            ob = recursiveUpdate {
+                  idx.workspace.onStart = (
+                    if init == [] then
+                      {}
+                    else { devbox-init = concatStringsSep " ; " init; }
+                  ) // (
+                    if install == [] then
+                      {}
+                    else { devbox-install = concatStringsSep " ; " install; }
+                  );
                 } obj;
             in parse { packages = true; } ob
           else if packages then let
