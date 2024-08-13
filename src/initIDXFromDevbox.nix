@@ -47,7 +47,7 @@
                   matched = match "^(.+)@(.+)$" x;
                 in pkgs.${head matched}) devbox.packages
               else []);
-              ob = obj recursiveUpdate {
+              ob = recursiveUpdate obj {
                 packages = init;
               };
             in parse { env = true; } ob
