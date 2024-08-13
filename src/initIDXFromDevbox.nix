@@ -24,17 +24,19 @@
               if devbox ? shell && devbox.shell ? init_hook then
                 devbox.shell.init_hook
               else [];
-            start = (
+            install =
               if devbox ? shell && devbox.shell ? scripts && devbox.shell.scripts ? install then
                 [ devbox.shell.scripts.install ]
-              else []
-            ) ++ init;
+              else [];
             ob =
-              if start == [] then
+              if install == [] || init == [] then
                 obj
               else
                 recursiveUpdate {
-                  idx.workspace.onStart = concatStringsSep " ; " start;
+                  idx.workspace.onStart = {
+                    devbox-init = concatStringsSep " ; " init;
+                    devbox-install = concatStringsSep " ; " install;
+                  };
                 } obj;
             in parse { packages = true; } ob
           else if packages then let
