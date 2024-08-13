@@ -38,15 +38,18 @@
                 } obj;
             in parse { packages = true; } ob
           else if packages then let
-            init =
+            init = (
+              if obj ? packages && isList obj.packages then
+                obj.packages
+              else []) ++ (
               if devbox ? packages && isList devbox.packages && devbox.packages != [] then
                 map (x: let
                   matched = match "^(.+)@(.+)$" x;
                 in pkgs.${head matched}) devbox.packages
-              else [];
-              ob = recursiveUpdate {
+              else []);
+              ob = obj recursiveUpdate {
                 packages = init;
-              } obj;
+              };
             in parse { env = true; } ob
           else if env then let
             init =
