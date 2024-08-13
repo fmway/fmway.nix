@@ -11,12 +11,13 @@
     any
     length
     isString
+    genList
+    removeAttrs
     tail
     elemAt
     split
     ;
   inherit (lib)
-    lists
     hasSuffix
     splitString
     hasPrefix
@@ -137,23 +138,23 @@ in rec {
   in removeSuffix suffix targetStr;
 
   removeExtension = ext: target: let
-    exts = if isString ext then ext else map (x: ".${x}") ext;
-  in  removeSuffix' exts target;
+    exts =
+      if isString ext then
+        ".${ext}"
+      else
+        map (x: ".${x}") ext;
+  in removeSuffix' exts target;
 
   stringMultiply = str: count:
-    foldl' (acc: _: str + acc) "" (lists.range 1 count);
+    foldl' (acc: _: str + acc) "" (genList (x: x) count);
 
   excludeList = excludes: inputs: let
     fixed = map (x: toString x) excludes;
     filtering = x: ! any (y: x == y) fixed;
   in filter filtering inputs;
 
-  excludeAttr = excludes: inputs: let
-    names = excludeList excludes (attrNames inputs);
-    func = acc: name: {
-      "${name}" = inputs.${name};
-    } // acc;
-  in foldl' func {} names;
+  excludeAttr = excludes: inputs:
+    removeAttrs inputs excludes;
 
   excludeItems = excludes: inputs:
   if isList inputs then
