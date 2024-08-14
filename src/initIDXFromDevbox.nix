@@ -9,15 +9,42 @@
     match
     isList
     pathExists
+    isPath
+    isFunction
+    typeOf
     head
     concatStringsSep
     isAttrs
   ;
 
-  function = path: pkgs: obj:
-    if pathExists path then
+  functionWithFunc = devbox: pkgs: func: let
+    obj = let
+      res = func result;
+    in if isAttrs res then
+      res
+    else if isFunction res then let
+      ress = res devbox;
+    in
+      if isAttrs ress then
+        ress
+      else throw "hmm ${typeOf ress}"
+    else throw "wtf ${typeOf res}";
+    result = function devbox pkgs obj;
+  in result;
+
+  function = path: pkgs: obj: let
+    devbox =
+      if isAttrs path then
+        path
+      else if isPath path && pathExists path then
+        fromJSON (fileContents path)
+      else null;
+  in
+    if isFunction obj then
+      functionWithFunc devbox pkgs obj
+    else if isAttrs obj then
+      if ! isNull devbox then
       let
-        devbox = fromJSON (fileContents path);
         parse = { onStart ? false, packages ? false, env ? false }: obj:
           if onStart then let
             init =
@@ -65,5 +92,6 @@
             in parse {} ob
           else obj;
       in parse { onStart = true; } obj
-    else obj;
+      else obj
+    else throw "initIDXFromDevbox must be attrs or function not ${typeOf obj}";
 in function
