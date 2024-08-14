@@ -76,7 +76,7 @@
                 map (x: let
                   matched = match "^(.+)@(.+)$" x;
                 in pkgs.${head matched}) devbox.packages
-              else []);
+              else []) ++ [ pkgs.devbox ];
               ob = recursiveUpdate obj {
                 packages = init;
               };
