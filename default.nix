@@ -1,8 +1,10 @@
-{ lib ? (import <nixpkgs> {}).lib }: let
+{ pkgs ? import <nixpkgs> {}
+, lib ? pkgs.lib
+, ... }: let
   treeImport = import ./src/treeImport.nix rec {
     inherit lib;
     root = let
-      var = { inherit lib root; };
+      var = { inherit lib root pkgs; };
       small = import ./src/__util/small-functions.nix var;
       for-import = import ./src/__util/for-import.nix var;
       tree-path = import ./src/tree-path.nix var;
@@ -13,7 +15,7 @@
   };
   result = treeImport {
    folder = ./src;
-   variables = { inherit lib; };
+   variables = { inherit lib pkgs; };
    depth = 0;
   };
 in result
