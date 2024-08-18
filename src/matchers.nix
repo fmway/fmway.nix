@@ -2,7 +2,6 @@
   inherit (builtins)
     isString
     isAttrs
-    fromTOML
     mapAttrs
   ;
   inherit (root)
