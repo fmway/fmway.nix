@@ -10,9 +10,10 @@
   inherit (builtins)
     readFile
     fromJSON
+    fromTOML
   ;
 in rec {
-  inherit fromJSON;
+  inherit fromJSON fromTOML;
   # thanks to https://github.com/paulyoung/pub2nix
   fromYAML = yaml: fromJSON (
     readFile (
@@ -48,4 +49,5 @@ in rec {
   readYAML = path: fromYAML (fileContents path);
   readJSONC = path: fromJSONC (fileContents path);
   readJSON = path: fromJSON (fileContents path);
+  readTOML = path: fromTOML (fileContents path);
 }
