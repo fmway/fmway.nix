@@ -2,7 +2,6 @@
   inherit (builtins)
     isString
     isAttrs
-    fromJSON
     fromTOML
     mapAttrs
   ;
@@ -14,6 +13,7 @@
     doImport
     excludeItems
     getFilename
+    parser
   ;
 
   inherit (lib)
@@ -48,17 +48,29 @@
         } else throw "${self._type} must be string or attrs");
   }) basicMatchers;
 
-in basic // {
-  nix = excludeItems [ "__functor" ] (basic.extension "nix" {
+in basic // (let
+  inherit (basic) extension;
+  do = func:
+    excludeItems [ "__functor" ] func;
+in {
+  nix = do (extension "nix" {
     _type = "matcher-by-nix";
     read = path: variables: doImport path variables;
   });
-  json = excludeItems [ "__functor" ] (basic.extension "json" {
+  json = do (extension "json" {
     _type = "matcher-by-json";
-    read = path: variables: fromJSON (fileContents path);
+    read = path: _: parser.readJSON path;
   });
-  toml = excludeItems [ "__functor" ] (basic.extension "toml" {
+  jsonc = do (extension "jsonc" {
+    _type = "matcher-by-jsonc";
+    read = path: _: parser.readJSONC path;
+  });
+  yaml = do (extension "yaml" {
+    _type = "matcher-by-yaml";
+    read = path: _: parser.readJSONC path;
+  }); 
+  toml = do (extension "toml" {
     _type = "matcher-by-toml";
-    read = path: variables: fromTOML (fileContents path);
+    read = path: _: parser.readTOML path;
   });
-}
+})
