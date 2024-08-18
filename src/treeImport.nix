@@ -33,10 +33,6 @@
     filtered = filter (x: x.match.isMatchedIn path && x ? alias) alias;
   in if length filtered >= 1 then (last filtered).alias else null; 
 
-  getExt = arr: let
-    filtered = filter (x: (x ? _type) && (x._type == "matcher-by-extension" || x._type == "matcher-by-nix")) arr;
-  in map (x: x.selector) filtered;
-
   getMatcher = matchers: path: let
     filtered = filter (x: x.isMatchedIn path) matchers;
   in if length filtered >= 1 then last filtered else null;
@@ -80,7 +76,7 @@
   treeImport' = { folder, variables ? {}, depth ? 1, excludes ? [], includes ? [] }: let
     includess = [ matchers.nix ] ++ includes;
     # ext = [ "nix" ] ++ (getExt includes);
-    ext = getExt includess;
+    ext = matchers.getExt includess;
     toObj = arr: path:
       if length arr < 1 then
         path

@@ -3,6 +3,7 @@
     isString
     isAttrs
     mapAttrs
+    filter
   ;
   inherit (root)
     hasSuffix'
@@ -54,22 +55,33 @@ in basic // (let
 in {
   nix = do (extension "nix" {
     _type = "matcher-by-nix";
+    _by-ext = true;
     read = path: variables: doImport path variables;
   });
   json = do (extension "json" {
     _type = "matcher-by-json";
+    _by-ext = true;
     read = path: _: parser.readJSON path;
   });
   jsonc = do (extension "jsonc" {
     _type = "matcher-by-jsonc";
+    _by-ext = true;
     read = path: _: parser.readJSONC path;
   });
   yaml = do (extension "yaml" {
     _type = "matcher-by-yaml";
+    _by-ext = true;
     read = path: _: parser.readJSONC path;
   }); 
   toml = do (extension "toml" {
     _type = "matcher-by-toml";
+    _by-ext = true;
     read = path: _: parser.readTOML path;
   });
+  getExt = arr: let
+    filtered = filter (x:
+      ((x ? _type) && (x._type == "matcher-by-extension")) ||
+      ((x ? _by-ext) && x._by-ext)
+    ) arr;
+  in map (x: x.selector) filtered;
 })
