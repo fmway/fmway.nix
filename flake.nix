@@ -8,7 +8,10 @@
   };
 
   outputs = { self, nixpkgs, ... } @ inputs: let
-    pkgs = nixpkgs.legacyPackages.${builtins.currentSystem};
+    system = builtins.currentSystem;
+    pkgs = import nixpkgs {
+      inherit system;
+    };
   in {
     fmway = import ./. {
       inherit (nixpkgs) lib;
