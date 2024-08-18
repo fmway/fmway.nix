@@ -32,7 +32,8 @@ in rec {
     )
   );
 
-  fromJSONC = jsonc: fromJSON (
+  fromJSONC = jsonc:
+  fromJSON (
     readFile (
       runCommand "from-jsonc"
         {
@@ -41,7 +42,7 @@ in rec {
           preferLocalBuild = true;
         }
         ''
-          echo "$jsonc" | sed 's/(^|[^"]+)\/\/.*$//g;s/(^|[^"]+)\/\*.*\*\///g;/^[[:space:]]*$/d' > $out
+          echo "$jsonc" | sed 's/\(^\/\/\|[^"'"'"']+\/\/\).*$//g;s/\(^\/\*\|[^'"'"'"]+\/\*\).*\*\///g;/^[[:space:]]*$/d' > $out
         ''
     )
   );
