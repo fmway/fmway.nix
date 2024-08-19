@@ -12,10 +12,12 @@
     pkgs = import nixpkgs {
       inherit system;
     };
-  in {
+  in rec {
     fmway = import ./. {
       inherit (nixpkgs) lib;
       inherit pkgs;
     };
+    homeManager.modules = fmway.genTreeImports ./modules/homeManager;
+    nixosModules.modules = fmway.genImportsWithDefault ./modules/nixos;
   };
 }
