@@ -3,6 +3,8 @@
     isPath
     isAttrs
     isList
+    isString
+    pathExists
     foldl'
     length
   ;
@@ -23,7 +25,7 @@
    templateSingleImport = { folder, variables, list, excludes, initial }: let
     filtered = if length excludes == 0 then list else excludeItems excludes list;
   in foldl' (acc: curr: {
-    "${basename curr}" = doImport (path.append folder curr) variables;
+    "${basename curr}" = doImport (path.append folder curr) (root // variables);
   } // acc) initial filtered;
 
   # generate object for single import for all <file>.nix exclude default.nix
@@ -70,17 +72,17 @@
 
 in rec {
 
-  customImport = var: if (var ? folder) || isPath var then
+  customImport = var: if (var ? folder) || isPath var || (isString var && pathExists var) then
     excludeItems ["__functor"] (customImport' var)
   else
     recursiveUpdate var { __functor = self: args: recursiveUpdate (excludeItems ["__functor"] self) (customImport args); };
   
-  customDefaultImport = var: if (var ? folder) || isPath var then
+  customDefaultImport = var: if (var ? folder) || isPath var || (isString var && pathExists var) then
     excludeItems ["__functor"] (customDefaultImport' var)
   else
     recursiveUpdate var { __functor = self: args: recursiveUpdate (excludeItems ["__functor"] self) (customDefaultImport args); };
 
-  customImportWithDefault = var: if (var ? folder) || isPath var then
+  customImportWithDefault = var: if (var ? folder) || isPath var || (isString var && pathExists var) then
     excludeItems ["__functor"] (customImportWithDefault' var)
   else
     recursiveUpdate var { __functor = self: args: recursiveUpdate (excludeItems ["__functor"] self) (customImportWithDefault args); };

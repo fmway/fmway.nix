@@ -71,7 +71,7 @@ in {
   yaml = do (extension "yaml" {
     _type = "matcher-by-yaml";
     _by-ext = true;
-    read = path: _: parser.readJSONC path;
+    read = path: _: parser.readYAML path;
   }); 
   toml = do (extension "toml" {
     _type = "matcher-by-toml";
