@@ -10,7 +10,6 @@
   ;
   inherit (lib)
     recursiveUpdate
-    path
   ;
 
   inherit (root)
@@ -24,8 +23,14 @@
 
    templateSingleImport = { folder, variables, list, excludes, initial }: let
     filtered = if length excludes == 0 then list else excludeItems excludes list;
-  in foldl' (acc: curr: {
-    "${basename curr}" = doImport (path.append folder curr) (root // variables);
+  in foldl' (acc: curr: let
+    var =
+      if isNull variables then
+        variables
+      else root // variables;
+    path = folder + "/${curr}";
+  in {
+    "${basename curr}" = doImport path var;
   } // acc) initial filtered;
 
   # generate object for single import for all <file>.nix exclude default.nix
