@@ -23,11 +23,11 @@
     inherit fmway;
     homeManagerModules.default = {
       imports = fmway.genTreeImports ./modules/homeManager;
-      nixpkgs.overlay = [ overlay ];
+      nixpkgs.overlays = [ overlay ];
     };
     nixosModules.default = {
       imports = fmway.genImportsWithDefault ./modules/nixos;
-      nixpkgs.overlay = [ overlay ];
+      nixpkgs.overlays = [ overlay ];
     };
     overlays.default = overlay;
   };
