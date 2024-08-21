@@ -2,9 +2,6 @@
 , nixosConfig
 , config
 , pkgs
-, doImport
-, basename
-, getNixs
 , ... } @ variables: let
   cfg = config.features.script;
 
@@ -16,6 +13,12 @@
     isAttrs
     isString
     ;
+
+  inherit (pkgs.functions)
+    doImport
+    basename
+    getNixs
+  ;
 
   inherit (lib)
     mkIf

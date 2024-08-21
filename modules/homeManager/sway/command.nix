@@ -1,13 +1,16 @@
 { lib
-# , config
-# , pkgs
-, firstChar
+, config
+, pkgs
 , ... }: let
   inherit (lib)
     mkBefore
     mkOption
     types
     ;
+
+  inherit (pkgs.functions)
+    firstChar
+  ;
 
   inherit (builtins)
     foldl'

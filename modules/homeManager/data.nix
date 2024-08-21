@@ -2,6 +2,7 @@
   inherit (lib)
     mkOption
     mkBefore
+    mkIf
     types
     ;
 
@@ -10,5 +11,5 @@ in {
     type = types.attrs;
     default = {};
   };
-  config.data = mkBefore nixosConfig.data;
+  config.data = mkIf (nixosConfig ? data) (mkBefore nixosConfig.data);
 }

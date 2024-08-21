@@ -1,9 +1,11 @@
 { lib
 , config
-, excludeItems
 , pkgs
-, stringMultiply
 , ... }: let
+  inherit (pkgs.functions)
+    stringMultiply
+    excludeItems
+    ;
   inherit (lib)
     mapAttrs'
     getExe

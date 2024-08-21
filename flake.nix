@@ -12,16 +12,23 @@
     pkgs = import nixpkgs {
       inherit system;
     };
-  in rec {
     fmway = import ./. {
       inherit (nixpkgs) lib;
       inherit pkgs;
     };
-    homeManagerModules.default = fmway // {
+    overlay = self: super: {
+      functions = fmway;
+    };
+  in {
+    inherit fmway;
+    homeManagerModules.default = {
       imports = fmway.genTreeImports ./modules/homeManager;
+      nixpkgs.overlay = [ overlay ];
     };
-    nixosModules.default = fmway // {
+    nixosModules.default = {
       imports = fmway.genImportsWithDefault ./modules/nixos;
+      nixpkgs.overlay = [ overlay ];
     };
+    overlays.default = overlay;
   };
 }

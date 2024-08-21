@@ -7,11 +7,7 @@
   inherit (builtins) listToAttrs readFile pathExists isFunction isAttrs isString;
   inherit (lib) mkIf mkEnableOption mkBefore mkAfter mkOption types recursiveUpdate;
 
-  functions = import ../../../. {
-    inherit lib pkgs;
-  };
-
-  inherit (functions)
+  inherit (pkgs.functions)
     doImport
     getNixs
     basename

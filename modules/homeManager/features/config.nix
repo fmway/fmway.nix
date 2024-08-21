@@ -1,14 +1,17 @@
 { config
 , pkgs
 , lib
-, tree-path
-, doImport
 , ... } @ variables: let
   cfg = config.features.config;
 
   inherit (builtins)
     foldl'
     ;
+
+  inherit (pkgs.functions)
+    tree-path
+    doImport
+  ;
 
   inherit (lib)
     mkIf

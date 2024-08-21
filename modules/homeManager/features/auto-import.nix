@@ -1,10 +1,6 @@
 { config
 , pkgs
 , lib
-, matchers
-, removeExtension
-, excludeItems
-, treeImport
 , ... } @ variables: let
   cfg = config.features.programs.auto-import;
 
@@ -12,6 +8,13 @@
     readDir
     attrNames
     ;
+
+  inherit (pkgs.functions)
+    matchers
+    removeExtension
+    excludeItems
+    treeImport
+  ;
 
   inherit (lib)
     recursiveUpdate
