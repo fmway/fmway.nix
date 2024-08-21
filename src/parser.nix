@@ -14,7 +14,6 @@
   ;
 in rec {
   inherit fromJSON fromTOML;
-  # thanks to https://github.com/paulyoung/pub2nix
   fromYAML = yaml: fromJSON (
     readFile (
       runCommand "from-yaml"
@@ -24,10 +23,7 @@ in rec {
           preferLocalBuild = true;
         }
         ''
-          echo "$yaml" | ${pkgs.remarshal}/bin/remarshal  \
-            -if yaml \
-            -of json \
-            -o $out
+          echo "$yaml" | ${lib.getExe pkgs.yj} > $out
         ''
     )
   );
