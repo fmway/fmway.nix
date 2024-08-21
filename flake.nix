@@ -16,15 +16,13 @@
   in {
     inherit fmway;
     homeManagerModules.default = {
-      lib = { inherit fmway; };
       imports = fmway.genTreeImports ./modules/homeManager;
-      # options.lib = lib.mkBefore { inherit fmway; };
+      options.lib = lib.mkBefore { inherit fmway; };
       # nixpkgs.overlays = [ overlay ];
     };
     nixosModules.default = {
-      lib = { inherit fmway; };
       imports = fmway.genImportsWithDefault ./modules/nixos;
-      # options.lib = lib.mkBefore { inherit fmway; };
+      options.lib = lib.mkBefore { inherit fmway; };
       # nixpkgs.overlays = [ overlay ];
     };
     overlays.default = overlay;
