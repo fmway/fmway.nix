@@ -13,17 +13,18 @@
     inherit (nixpkgs) lib;
     fmway = import ./. { inherit pkgs lib; };
     overlay = self: super: { inherit fmway; };
+    finalLib = self: super: {
+      lib = lib.extend overlay;
+    };
   in {
     inherit fmway;
     homeManagerModules.default = {
       imports = fmway.genTreeImports ./modules/homeManager;
-      options.lib = lib.mkBefore { inherit fmway; };
-      # nixpkgs.overlays = [ overlay ];
+      nixpkgs.overlays = [ finalLib ];
     };
     nixosModules.default = {
       imports = fmway.genImportsWithDefault ./modules/nixos;
-      options.lib = lib.mkBefore { inherit fmway; };
-      # nixpkgs.overlays = [ overlay ];
+      nixpkgs.overlays = [ finalLib ];
     };
     overlays.default = overlay;
   };
