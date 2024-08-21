@@ -35,7 +35,7 @@ in {
     focus = generator (x: "focus ${x}") (directions ++ [ "mode_toggle" "parent" ]);
     move = generator (x: "move ${x}") (directions ++ [ "scratchpad" ]);
     show = generator (x: "${x} show") [ "scratchpad" ];
-    toggle = generator (x: "${x} toggle") [ "floating" "fullscreen" ];
+    toggle = generator (x: "${x} toggle") [ "floating" "fullscreen" "border" ];
     layout = generator (x: "layout ${x}") [ "stacking" "tabbed" "toggle split" ];
     split = generator (x: "split${firstChar x}") [ "horizontal" "vertical" ];
     to-workspace = num: "workspace number ${toString num}";
