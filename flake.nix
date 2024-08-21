@@ -9,26 +9,22 @@
 
   outputs = { self, nixpkgs, ... } @ inputs: let
     system = builtins.currentSystem;
-    pkgs = import nixpkgs {
-      inherit system;
-    };
-    fmway = import ./. {
-      inherit (nixpkgs) lib;
-      inherit pkgs;
-    };
-    overlay = self: super: {
-      inherit fmway;
-    };
+    pkgs = import nixpkgs { inherit system; };
+    inherit (nixpkgs) lib;
+    fmway = import ./. { inherit pkgs lib; };
+    overlay = self: super: { inherit fmway; };
   in {
     inherit fmway;
     homeManagerModules.default = {
-      imports = fmway.genTreeImports ./modules/homeManager;
       lib = { inherit fmway; };
+      imports = fmway.genTreeImports ./modules/homeManager;
+      # options.lib = lib.mkBefore { inherit fmway; };
       # nixpkgs.overlays = [ overlay ];
     };
     nixosModules.default = {
-      imports = fmway.genImportsWithDefault ./modules/nixos;
       lib = { inherit fmway; };
+      imports = fmway.genImportsWithDefault ./modules/nixos;
+      # options.lib = lib.mkBefore { inherit fmway; };
       # nixpkgs.overlays = [ overlay ];
     };
     overlays.default = overlay;
