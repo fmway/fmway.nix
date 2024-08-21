@@ -8,7 +8,8 @@
   };
 
   outputs = { self, nixpkgs, ... } @ inputs: let
-    system = builtins.currentSystem;
+    # TODO eachSystem
+    system = "x86_64-linux";
     pkgs = import nixpkgs { inherit system; };
     inherit (nixpkgs) lib;
     fmway = import ./. { inherit pkgs lib; };
