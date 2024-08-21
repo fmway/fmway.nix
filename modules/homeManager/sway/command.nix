@@ -9,7 +9,11 @@
     foldl'
     ;
 
-  inherit (pkgs.functions)
+  functions = import ../../../. {
+    inherit lib pkgs;
+  };
+
+  inherit (functions)
     firstChar
     ;
 

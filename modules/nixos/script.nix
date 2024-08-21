@@ -1,15 +1,24 @@
 { lib
 , config
 , pkgs
-, doImport
-, basename
-, getNixs
 , ...
 } @ variables: let
   cfg = config.programs.script;
   inherit (builtins) listToAttrs readFile pathExists isFunction isAttrs isString;
   inherit (lib) mkIf mkEnableOption mkBefore mkAfter mkOption types recursiveUpdate;
+
+  functions = import ../../../. {
+    inherit lib pkgs;
+  };
+
+  inherit (functions)
+    doImport
+    getNixs
+    basename
+  ;
 in {
+  
+
   options.environment.script = mkOption {
     type = types.attrs;
     default = {};

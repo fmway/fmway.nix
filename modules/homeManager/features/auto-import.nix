@@ -6,7 +6,11 @@
     attrNames
     ;
 
-  inherit (pkgs.functions)
+  functions = import ../../../. {
+    inherit lib pkgs;
+  };
+
+  inherit (functions)
     removeExtension
     excludeItems
     treeImport

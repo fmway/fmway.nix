@@ -1,7 +1,11 @@
 { lib, nixosConfig, config, pkgs, ... } @ variables: let
   cfg = config.features.script;
 
-  inherit (pkgs.functions)
+  functions = import ../../../. {
+    inherit lib pkgs;
+  };
+
+  inherit (functions)
     doImport
     basename
     getNixs

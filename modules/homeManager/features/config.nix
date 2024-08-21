@@ -1,7 +1,11 @@
 { config, pkgs, lib, ... } @ variables: let
   cfg = config.features.config;
 
-  inherit (pkgs.functions)
+  functions = import ../../../. {
+    inherit lib pkgs;
+  };
+
+  inherit (functions)
     tree-path
     doImport
     ;

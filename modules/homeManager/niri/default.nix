@@ -10,7 +10,11 @@
     types
     lists
     ;
-  inherit (pkgs.functions)
+  functions = import ../../../. {
+    inherit lib pkgs;
+  };
+
+  inherit (functions)
     stringMultiply
     ;
   inherit (builtins)
