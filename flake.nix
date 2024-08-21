@@ -17,17 +17,19 @@
       inherit pkgs;
     };
     overlay = self: super: {
-      functions = fmway;
+      inherit fmway;
     };
   in {
     inherit fmway;
     homeManagerModules.default = {
       imports = fmway.genTreeImports ./modules/homeManager;
-      nixpkgs.overlays = [ overlay ];
+      lib = { inherit fmway; };
+      # nixpkgs.overlays = [ overlay ];
     };
     nixosModules.default = {
       imports = fmway.genImportsWithDefault ./modules/nixos;
-      nixpkgs.overlays = [ overlay ];
+      lib = { inherit fmway; };
+      # nixpkgs.overlays = [ overlay ];
     };
     overlays.default = overlay;
   };

@@ -8,7 +8,7 @@
     types
     ;
 
-  inherit (pkgs.functions)
+  inherit (lib.fmway)
     firstChar
   ;
 

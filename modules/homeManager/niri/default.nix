@@ -2,7 +2,7 @@
 , config
 , pkgs
 , ... }: let
-  inherit (pkgs.functions)
+  inherit (lib.fmway)
     stringMultiply
     excludeItems
     ;

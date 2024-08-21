@@ -7,7 +7,7 @@
   inherit (builtins) listToAttrs readFile pathExists isFunction isAttrs isString;
   inherit (lib) mkIf mkEnableOption mkBefore mkAfter mkOption types recursiveUpdate;
 
-  inherit (pkgs.functions)
+  inherit (lib.fmway)
     doImport
     getNixs
     basename

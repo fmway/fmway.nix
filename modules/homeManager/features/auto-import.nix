@@ -9,7 +9,7 @@
     attrNames
     ;
 
-  inherit (pkgs.functions)
+  inherit (lib.fmway)
     matchers
     removeExtension
     excludeItems

@@ -8,7 +8,7 @@
     foldl'
     ;
 
-  inherit (pkgs.functions)
+  inherit (lib.fmway)
     tree-path
     doImport
   ;

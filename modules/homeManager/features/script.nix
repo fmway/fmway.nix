@@ -14,7 +14,7 @@
     isString
     ;
 
-  inherit (pkgs.functions)
+  inherit (lib.fmway)
     doImport
     basename
     getNixs
