@@ -1,4 +1,9 @@
-{ lib, config, excludeItems, pkgs, ... }: let
+{ lib
+, config
+, excludeItems
+, pkgs
+, stringMultiply
+, ... }: let
   inherit (lib)
     mapAttrs'
     getExe
@@ -9,13 +14,6 @@
     mkAfter
     types
     lists
-    ;
-  functions = import ../../../. {
-    inherit lib pkgs;
-  };
-
-  inherit (functions)
-    stringMultiply
     ;
   inherit (builtins)
     foldl'

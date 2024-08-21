@@ -1,19 +1,16 @@
-{ config, pkgs, lib, matchers, ... } @ variables: let
+{ config
+, pkgs
+, lib
+, matchers
+, removeExtension
+, excludeItems
+, treeImport
+, ... } @ variables: let
   cfg = config.features.programs.auto-import;
 
   inherit (builtins)
     readDir
     attrNames
-    ;
-
-  functions = import ../../../. {
-    inherit lib pkgs;
-  };
-
-  inherit (functions)
-    removeExtension
-    excludeItems
-    treeImport
     ;
 
   inherit (lib)

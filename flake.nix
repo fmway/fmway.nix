@@ -1,5 +1,5 @@
 {
-  description = "Collection of functions for nix in my own way";
+  description = "Collection of functions and modules for nix in my own way";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
@@ -17,7 +17,11 @@
       inherit (nixpkgs) lib;
       inherit pkgs;
     };
-    homeManager.modules = fmway.genTreeImports ./modules/homeManager;
-    nixosModules.modules = fmway.genImportsWithDefault ./modules/nixos;
+    homeManagerModules.default = fmway // {
+      imports = fmway.genTreeImports ./modules/homeManager;
+    };
+    nixosModules.default = fmway // {
+      imports = fmway.genImportsWithDefault ./modules/nixos;
+    };
   };
 }

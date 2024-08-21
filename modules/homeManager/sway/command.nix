@@ -1,4 +1,8 @@
-{ lib, config, pkgs, ... }: let
+{ lib
+# , config
+# , pkgs
+, firstChar
+, ... }: let
   inherit (lib)
     mkBefore
     mkOption
@@ -7,14 +11,6 @@
 
   inherit (builtins)
     foldl'
-    ;
-
-  functions = import ../../../. {
-    inherit lib pkgs;
-  };
-
-  inherit (functions)
-    firstChar
     ;
 
   template = callback: acc: elem: { "${elem}" = callback elem; } // acc;

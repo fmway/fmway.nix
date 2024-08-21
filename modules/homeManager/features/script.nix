@@ -1,15 +1,12 @@
-{ lib, nixosConfig, config, pkgs, ... } @ variables: let
+{ lib
+, nixosConfig
+, config
+, pkgs
+, doImport
+, basename
+, getNixs
+, ... } @ variables: let
   cfg = config.features.script;
-
-  functions = import ../../../. {
-    inherit lib pkgs;
-  };
-
-  inherit (functions)
-    doImport
-    basename
-    getNixs
-    ;
 
   inherit (builtins)
     listToAttrs

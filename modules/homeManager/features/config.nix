@@ -1,14 +1,10 @@
-{ config, pkgs, lib, ... } @ variables: let
+{ config
+, pkgs
+, lib
+, tree-path
+, doImport
+, ... } @ variables: let
   cfg = config.features.config;
-
-  functions = import ../../../. {
-    inherit lib pkgs;
-  };
-
-  inherit (functions)
-    tree-path
-    doImport
-    ;
 
   inherit (builtins)
     foldl'
