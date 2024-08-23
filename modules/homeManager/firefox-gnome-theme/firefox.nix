@@ -25,19 +25,19 @@
 
   chromes = profile: let
     enable = cfg.profiles.${profile}.gnome-theme;
-    base = ".mozilla/firefox/${profile}/chrome";
+    base = ".mozilla/firefox/${profile}";
   in {
-    "${base}/userChrome.css" = mkIf enable {
+    "${base}/chrome/userChrome.css" = mkIf enable {
       text = mkBefore ''
         @import "firefox-gnome-theme/userChrome.css";
       '';
     };
-    "${base}/userContent.css" = mkIf enable {
+    "${base}/chrome/userContent.css" = mkIf enable {
       text = mkBefore ''
         @import "firefox-gnome-theme/userContent.css";
       '';
     };
-    "${base}/firefox-gnome-theme" = mkIf enable {
+    "${base}/chrome/firefox-gnome-theme" = mkIf enable {
       source = github;
     };
     "${base}/user.js" = mkIf enable {
