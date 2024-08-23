@@ -6,6 +6,7 @@
     types
     mkIf
     mkBefore
+    fileContents
   ;
 
   inherit (builtins)
@@ -16,8 +17,8 @@
   github = pkgs.fetchFromGitHub {
     owner = "rafaelmardojai";
     repo = "firefox-gnome-theme";
-    rev = "v128";
-    hash = "sha256-zB+Zd0V0ayKP/zg9n1MQ8J/Znwa49adylRftxuc694k=";
+    rev = "v129";
+    hash = "sha256-MOE9NeU2i6Ws1GhGmppMnjOHkNLl2MQMJmGhaMzdoJM=";
   };
 
   cfg = config.programs.firefox;
@@ -38,6 +39,9 @@
     };
     "${base}/firefox-gnome-theme" = mkIf enable {
       source = github;
+    };
+    "${base}/user.js" = mkIf enable {
+      text = mkBefore (fileContents "${github}/configuration/user.js");
     };
     };
 in {
