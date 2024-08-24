@@ -26,9 +26,10 @@
     inherit pname name src extraPkgs;
     extraInstallCommands = ''
       mkdir -p $out/share/icons/hicolor/512x512/apps
-      cp ${appimageContents}/*.png $out/share/icons/hicolor/512x512/apps/
       install -m 444 -D ${appimageContents}/${pname}.desktop $out/share/applications/${pname}.desktop
-      [ -e ${appimageContents}/usr/share ] && cp -r ${appimageContents}/usr/share $out
+      [ -e ${appimageContents}/usr/share ] &&
+        cp -r ${appimageContents}/usr/share $out ||
+        cp ${appimageContents}/*.png $out/share/icons/hicolor/512x512/apps/
     '';
   });
 
