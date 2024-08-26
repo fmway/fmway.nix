@@ -17,11 +17,13 @@
     finalLib = lib.extend overlay;
   in {
     inherit fmway;
-    homeManagerModules.default = {
+    homeManagerModules.default = self.homeManagerModules.fmway;
+    homeManagerModules.fmway = {
       imports = fmway.genTreeImports ./modules/homeManager;
       nixpkgs.overlays = [ (_: _: { lib = finalLib; }) ];
     };
-    nixosModules.default = {
+    nixosModules.default = self.nixosModules.fmway;
+    nixosModules.fmway = {
       imports = fmway.genImportsWithDefault ./modules/nixos;
       nixpkgs.overlays = [ (_: _: { lib = finalLib; }) ];
     };
