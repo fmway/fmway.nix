@@ -1,5 +1,5 @@
 { lib, pkgs, root, ... }:
-{
+rec {
   # fetchJSON = { ... } @ args:
   #   builtins.fromJSON (
   #     lib.fileContents (
@@ -22,46 +22,22 @@
         )
       )
     ;
+    parseArg = arg: method:
+      (if builtins.isString arg then
+        { url = arg; }
+      else if builtins.isAttrs arg then
+        arg
+      else throw "Unknown fetchJSON args") // { inherit method; };
   in {
-    __functor = self: arg: let
-      obj =
-        if builtins.isString arg then
-          { url = arg; }
-        else if builtins.isAttrs arg then
-          arg
-        else throw "Unknown fetchJSON args";
-    in do obj;
-    get = arg: let
-      obj =
-        if builtins.isString arg then
-          { url = arg; method = "get"; }
-        else if builtins.isAttrs arg then
-          arg // { method = "get"; }
-        else throw "Unknown fetchJSON args";
-    in do obj;
-    put = arg: let
-      obj =
-        if builtins.isString arg then
-          { url = arg;  method = "put"; }
-        else if builtins.isAttrs arg then
-          arg // { method = "put"; }
-        else throw "Unknown fetchJSON args";
-    in do obj;
-    post = arg: let
-      obj =
-        if builtins.isString arg then
-          { url = arg; method = "post"; }
-        else if builtins.isAttrs arg then
-          arg // { method = "post"; }
-        else throw "Unknown fetchJSON args";
-    in do obj;
-    delete = arg: let
-      obj =
-        if builtins.isString arg then
-          { url = arg; method = "delete"; }
-        else if builtins.isAttrs arg then
-          arg // { method = "delete"; }
-        else throw "Unknown fetchJSON args";
-    in do obj;
+    __functor = self: arg:
+      fetchJSON.get arg;
+    get = arg: 
+      do (parseArg arg "get");
+    put = arg: 
+      do (parseArg arg "put");
+    post = arg: 
+      do (parseArg arg "post");
+    delete = arg:
+      do (parseArg arg "delete");
   };
 }
