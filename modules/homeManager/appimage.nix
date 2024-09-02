@@ -12,25 +12,32 @@
     attrNames
   ;
 
-  buildMe = { pname, src, name, extraPkgs, ... } @ self: let
+  buildMe = { pname, src, name, x11Only, extraPkgs, ... } @ self: let
     appimageContents = pkgs.appimageTools.extract {
       inherit pname name src;
       postExtract = ''
         main="$(basename "$(find $out -maxdepth 1 -name '*.desktop' | head -n 1)" .desktop)"
         execapp="$(cat "''${out}/''${main}.desktop" | grep Exec= | tr '=' ' ' | awk '{print $2}' | head -n 1)"
-        mv $out/''${main}.desktop $out/${pname}.desktop
+        [ -e $out/${pname}.desktop ] || mv $out/''${main}.desktop $out/${pname}.desktop
         substituteInPlace $out/${pname}.desktop \
           --replace "Exec=''${execapp}" 'Exec=${pname}'
       '';
     };
   in pkgs.appimageTools.wrapType2 ((if self.meta != {} then { inherit (self) meta; } else {}) // {
     inherit pname name src extraPkgs;
+    nativeBuildInputs = lib.optionals x11Only [
+      pkgs.makeWrapper
+    ];
     extraInstallCommands = ''
       mkdir -p $out/share/icons/hicolor/512x512/apps
       install -m 444 -D ${appimageContents}/${pname}.desktop $out/share/applications/${pname}.desktop
       [ -e ${appimageContents}/usr/share ] &&
         cp -r ${appimageContents}/usr/share $out ||
         cp ${appimageContents}/*.png $out/share/icons/hicolor/512x512/apps/
+    '';
+    postInstall = lib.optionalString x11Only ''
+      wrapProgram $out/bin/${pname} \
+        --set GDK_BACKEND x11
     '';
   });
 
@@ -62,6 +69,7 @@ in {
             type = types.functionTo (types.listOf types.package);
             default = pkgs: [];
           };
+          x11Only = mkEnableOption "force run under x11";
           meta = mkOption {
             type = types.attrs;
             default = {};
