@@ -14,37 +14,36 @@
   ;
 in rec {
   inherit fromJSON fromTOML;
-  fromYAML = yaml: fromJSON (
+  fromYAML = yaml: readYAML (pkgs.writeText "file.yaml" yaml);
+  fromJSONC = jsonc: readJSONC (pkgs.writeText "file.jsonc" jsonc);
+
+  readYAML = FILE: fromJSON (
     readFile (
       runCommand "from-yaml"
         {
-          inherit yaml;
+          inherit FILE;
           allowSubstitutes = false;
           preferLocalBuild = true;
         }
         ''
-          echo "$yaml" | ${lib.getExe pkgs.yj} > $out
+          cat "$FILE" | ${lib.getExe pkgs.yj} > $out
         ''
     )
   );
-
-  fromJSONC = jsonc:
-  fromJSON (
-    readFile (
-      runCommand "from-jsonc"
-        {
-          inherit jsonc;
-          allowSubstitutes = false;
-          preferLocalBuild = true;
-        }
-        ''
-          echo "$jsonc" | sed 's/\(^\/\/\|[^"'"'"']+\/\/\).*$//g;s/\(^\/\*\|[^'"'"'"]+\/\*\).*\*\///g;/^[[:space:]]*$/d' > $out
-        ''
-    )
-  );
-
-  readYAML = path: fromYAML (fileContents path);
-  readJSONC = path: fromJSONC (fileContents path);
+  readJSONC = FILE:
+    fromJSON (
+      readFile (
+        runCommand "from-jsonc"
+          {
+            inherit FILE;
+            allowSubstitutes = false;
+            preferLocalBuild = true;
+          }
+          ''
+            ${pkgs.gcc}/bin/cpp -P -E "$FILE" > $out
+          ''
+      )
+    );
   readJSON = path: fromJSON (fileContents path);
   readTOML = path: fromTOML (fileContents path);
 }
