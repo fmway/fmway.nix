@@ -87,6 +87,6 @@ in with lib; {
   config = mkIf cfg.enable {
     home.packages = map (name: let
       self = cfg.packages.${name};
-    in self) (attrNames cfg.packages);
+    in self.result) (attrNames cfg.packages);
   };
 }
