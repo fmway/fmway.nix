@@ -73,6 +73,11 @@ in with lib; {
             type = types.attrs;
             default = {};
           };
+          result = mkOption {
+            type = types.package;
+            default = buildMe self;
+            readOnly = true;
+          };
         };
       }));
       default = {};
@@ -81,6 +86,6 @@ in with lib; {
   config = mkIf cfg.enable {
     environment.systemPackages = map (name: let
       self = cfg.packages.${name};
-    in buildMe self) (attrNames cfg.packages);
+    in self.result) (attrNames cfg.packages);
   };
 }
