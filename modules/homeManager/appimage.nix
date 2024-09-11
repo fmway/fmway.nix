@@ -4,7 +4,7 @@
     attrNames
   ;
 
-  buildMe = { pname, src, name, extraPkgs, ... } @ self: let
+  buildMe = { pname, src, name, extraPkgs, x11Only, isElectron, ... } @ self: let
     appimageContents = pkgs.appimageTools.extract {
       inherit pname name src;
       postExtract = ''
@@ -18,7 +18,19 @@
   in pkgs.appimageTools.wrapType2 ((if self.meta != {} then { inherit (self) meta; } else {}) // {
     inherit pname name src extraPkgs;
 
-    extraInstallCommands = ''
+    extraInstallCommands = let
+      wrapOzone = ''
+        wrapProgram $out/bin/${pname} \
+          --add-flags "\''${NIXOS_OZONE_WL:+\''${WAYLAND_DISPLAY:+--ozone-platform-hint=auto --enable-features=WaylandWindowDecorations}}"
+        '';
+      wrapOnlyX11 = ''
+        wrapProgram $out/bin/${pname} \
+          --set GDK_BACKEND x11
+      '';
+    in ''
+      source "${pkgs.makeWrapper}/nix-support/setup-hook"
+      ${lib.optionalString x11Only wrapOnlyX11}
+      ${lib.optionalString (!x11Only && isElectron) wrapOzone}
       mkdir -p $out/share/icons/hicolor/512x512/apps
       install -m 444 -D ${appimageContents}/${pname}.desktop $out/share/applications/${pname}.desktop
       [ -e ${appimageContents}/usr/share ] &&
@@ -52,6 +64,8 @@ in with lib; {
           src = mkOption {
             type = with types; oneOf [ package path ];
           };
+          x11Only = mkEnableOption "only x11";
+          isElectron = mkEnableOption "to add ozone features";
           extraPkgs = mkOption {
             type = with types; functionTo (listOf package);
             default = pkgs: [];
