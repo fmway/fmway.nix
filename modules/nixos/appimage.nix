@@ -1,18 +1,11 @@
 { config, lib, pkgs, ... }: let
-  inherit (lib)
-    mkIf
-    mkOption
-    mkEnableOption
-    types
-    optionals
-  ;
 
   inherit (builtins)
     isNull
     attrNames
   ;
 
-  buildMe = { pname, src, name, x11Only, extraPkgs, ... } @ self: let
+  buildMe = { pname, src, name, extraPkgs, ... } @ self: let
     appimageContents = pkgs.appimageTools.extract {
       inherit pname name src;
       postExtract = ''
@@ -25,9 +18,7 @@
     };
   in pkgs.appimageTools.wrapType2 ((if self.meta != {} then { inherit (self) meta; } else {}) // {
     inherit pname name src extraPkgs;
-    nativeBuildInputs = lib.optionals x11Only [
-      pkgs.makeWrapper
-    ];
+    
     extraInstallCommands = ''
       mkdir -p $out/share/icons/hicolor/512x512/apps
       install -m 444 -D ${appimageContents}/${pname}.desktop $out/share/applications/${pname}.desktop
@@ -35,14 +26,10 @@
         cp -r ${appimageContents}/usr/share $out ||
         cp ${appimageContents}/*.png $out/share/icons/hicolor/512x512/apps/
     '';
-    postInstall = lib.optionalString x11Only ''
-      wrapProgram $out/bin/${pname} \
-        --set GDK_BACKEND x11
-    '';
   });
 
   cfg = config.programs.appimage;
-in {
+in with lib; {
   options.programs.appimage = {
     packages = mkOption {
       type = types.attrsOf (types.submodule ({ name, ... }: let
@@ -59,14 +46,13 @@ in {
           };
           name = mkOption {
             type = types.str;
-            default = self.pname + (optionals (!isNull self.version) "-${self.version}");
+            default = self.pname + (optionalString (!isNull self.version) "-${self.version}");
           };
           src = mkOption {
-            type = types.oneOf [ types.package types.path ];
+            type = with types; oneOf [ package path ];
           };
-          x11Only = mkEnableOption "force run under x11";
           extraPkgs = mkOption {
-            type = types.functionTo (types.listOf types.package);
+            type = with types; functionTo (listOf package);
             default = pkgs: [];
           };
           meta = mkOption {
@@ -78,7 +64,7 @@ in {
       default = {};
     };
     result = mkOption {
-      type = types.listOf types.package;
+      type = with types; listOf package;
       default = [];
     };
   };
