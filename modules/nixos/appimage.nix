@@ -5,7 +5,7 @@
     attrNames
   ;
 
-  buildMe = { pname, src, name, extraPkgs, x11Only, isElectron, ... } @ self: let
+  buildMe = { pname, src, name, icon, extraPkgs, x11Only, isElectron, ... } @ self: let
     appimageContents = pkgs.appimageTools.extract {
       inherit pname name src;
       postExtract = ''
@@ -35,8 +35,9 @@
       mkdir -p $out/share/icons/hicolor/512x512/apps
       install -m 444 -D ${appimageContents}/${pname}.desktop $out/share/applications/${pname}.desktop
       [ -e ${appimageContents}/usr/share ] &&
-        cp -r ${appimageContents}/usr/share $out ||
-        cp ${appimageContents}/*.png $out/share/icons/hicolor/512x512/apps/
+        cp -rf ${appimageContents}/usr/share $out ||
+        cp -f ${appimageContents}/*.png $out/share/icons/hicolor/512x512/apps/
+      ${lib.optionalString (!isNull icon) "cp -f ${icon} $out/share/icons/hicolor/512x512/apps/${pname}.png"}
     '';
   });
 
@@ -59,6 +60,10 @@ in with lib; {
           name = mkOption {
             type = types.str;
             default = self.pname + (optionalString (!isNull self.version) "-${self.version}");
+          };
+          icon = mkOption {
+            type = with types; nullOr pathInStore;
+            default = null;
           };
           src = mkOption {
             type = with types; oneOf [ package path ];
