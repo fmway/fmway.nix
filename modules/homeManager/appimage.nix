@@ -2,9 +2,11 @@
   inherit (builtins)
     isNull
     attrNames
+    concatStringsSep
+    map
   ;
 
-  buildMe = { pname, src, name, extraPkgs, x11Only, isElectron, ... } @ self: let
+  buildMe = { pname, src, name, extraPkgs, x11Only, isElectron, env, ... } @ self: let
     appimageContents = pkgs.appimageTools.extract {
       inherit pname name src;
       postExtract = ''
@@ -19,12 +21,17 @@
     inherit pname name src extraPkgs;
 
     extraInstallCommands = let
+      genEnv = concatStringsSep " " (
+        map (k: let
+          v = lib.strings.toJSON env.${k};
+        in "--set ${k} ${v}") (attrNames env)
+      );
       wrapOzone = ''
-        wrapProgram $out/bin/${pname} \
+        wrapProgram $out/bin/${pname} ${genEnv} \
           --add-flags "\''${NIXOS_OZONE_WL:+\''${WAYLAND_DISPLAY:+--ozone-platform-hint=auto --enable-features=WaylandWindowDecorations}}"
         '';
       wrapOnlyX11 = ''
-        wrapProgram $out/bin/${pname} \
+        wrapProgram $out/bin/${pname} ${genEnv} \
           --set GDK_BACKEND x11
       '';
     in ''
@@ -66,6 +73,10 @@ in with lib; {
           };
           x11Only = mkEnableOption "only x11";
           isElectron = mkEnableOption "to add ozone features";
+          env = mkOption {
+            type = with types; attrsOf (nullOr (oneOf [ str int bool ]));
+            default = {};
+          };
           extraPkgs = mkOption {
             type = with types; functionTo (listOf package);
             default = pkgs: [];
