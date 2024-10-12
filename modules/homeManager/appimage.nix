@@ -21,23 +21,18 @@
     inherit pname name src extraPkgs;
 
     extraInstallCommands = let
-      genEnv = concatStringsSep " " (
+      wrapEnv = concatStringsSep " " (
         map (k: let
           v = lib.strings.toJSON env.${k};
         in "--set ${k} ${v}") (attrNames env)
       );
       wrapOzone = ''
-        wrapProgram $out/bin/${pname} ${genEnv} \
           --add-flags "\''${NIXOS_OZONE_WL:+\''${WAYLAND_DISPLAY:+--ozone-platform-hint=auto --enable-features=WaylandWindowDecorations}}"
         '';
-      wrapOnlyX11 = ''
-        wrapProgram $out/bin/${pname} ${genEnv} \
-          --set GDK_BACKEND x11
-      '';
+      wrapOnlyX11 = "--set GDK_BACKEND x11";
     in ''
       source "${pkgs.makeWrapper}/nix-support/setup-hook"
-      ${lib.optionalString x11Only wrapOnlyX11}
-      ${lib.optionalString (!x11Only && isElectron) wrapOzone}
+      wrapProgram $out/bin/${pname} ${wrapEnv} ${lib.optionalString x11Only wrapOnlyX11} ${lib.optionalString (!x11Only && isElectron) wrapOzone}
       mkdir -p $out/share/icons/hicolor/512x512/apps
       install -m 444 -D ${appimageContents}/${pname}.desktop $out/share/applications/${pname}.desktop
       [ -e ${appimageContents}/usr/share ] &&
