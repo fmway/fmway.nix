@@ -1,4 +1,4 @@
-{ lib, ... }: let
+{ lib, config, ... }: let
   inherit (lib)
     mkOption
     types
@@ -11,5 +11,12 @@ in {
       default = {};
     };
   };
-  config = {};
+  config = {
+    wayland.windowManager.sway.config.startup = let
+      inherit (config.programs) autostart;
+      result = map (p: let
+        exe = lib.getExe p;
+      in { command = exe; }) autostart.packages;
+    in lib.mkIf autostart.enable result;
+  };
 }
