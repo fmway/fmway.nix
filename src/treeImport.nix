@@ -6,6 +6,7 @@
     typeOf
     attrNames
     tail
+    all
     isAttrs
     filter
     foldl'
@@ -15,6 +16,7 @@
     splitString
     take
     last
+    optionals
   ;
 
   inherit (root)
@@ -74,7 +76,8 @@
   in result;
 
   treeImport' = { folder, variables ? {}, depth ? 1, excludes ? [], includes ? [] }: let
-    includess = [ matchers.nix ] ++ includes;
+    includess = includes ++
+      optionals (all (x: x._type != "matcher-by-nix") includes) [ matchers.nix ];
     # ext = [ "nix" ] ++ (getExt includes);
     ext = matchers.getExt includess;
     toObj = arr: path:
