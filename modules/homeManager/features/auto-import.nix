@@ -55,7 +55,7 @@ in {
     };
   };
 
-  config = mkIf cfg.enable {
+  config = mkIf (cfg.enable && cfg.cwd != null) {
     programs = let
       result = treeImport {
         folder = cfg.cwd;
