@@ -1,4 +1,4 @@
-{ lib, pkgs, root, ... }:
+{ lib, root, ... }:
 rec {
   # fetchJSON = { ... } @ args:
   #   builtins.fromJSON (
@@ -13,14 +13,14 @@ rec {
           "-H '${x}: ${headers.${x}}'"
         ) (builtins.attrNames headers)
       );
-    in
-      builtins.fromJSON (
-        lib.fileContents (
-          pkgs.fetchurl (root.excludeItems [ "headers" "method" ] args // {
-            curlOpts = "-X ${lib.toUpper method} ${headerToOptions}";
-          })
-        )
-      )
+    in throw "fetchJSON not available for now"
+      # builtins.fromJSON (
+      #   lib.fileContents (
+      #     pkgs.fetchurl (root.excludeItems [ "headers" "method" ] args // {
+      #       curlOpts = "-X ${lib.toUpper method} ${headerToOptions}";
+      #     })
+      #   )
+      # )
     ;
     parseArg = arg: method:
       (if builtins.isString arg then

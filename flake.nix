@@ -9,10 +9,8 @@
 
   outputs = { self, nixpkgs, ... } @ inputs: let
     # TODO eachSystem
-    system = "x86_64-linux";
-    pkgs = import nixpkgs { inherit system; };
     inherit (nixpkgs) lib;
-    fmway = import ./. { inherit pkgs lib; };
+    fmway = import ./. { inherit lib; };
     overlay = self: super: { inherit fmway; };
     finalLib = lib.extend overlay;
   in {
