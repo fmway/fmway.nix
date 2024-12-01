@@ -98,9 +98,7 @@ in with lib; {
       if isHomeManager then
         [ "home" "packages" ]
       else [ "environment" "systemPackages" ];
-  in lib.setAttrByPath keys {
-    home.packages = map (name: let
-      self = cfg.packages.${name};
-    in self.result) (attrNames cfg.packages);
-  });
+  in lib.setAttrByPath keys (map (name: let
+    self = cfg.packages.${name};
+  in self.result) (attrNames cfg.packages)));
 }

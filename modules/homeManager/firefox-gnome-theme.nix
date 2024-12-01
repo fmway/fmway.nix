@@ -40,14 +40,14 @@ in {
           extraConfig = mkBefore (fileContents "${github}/configuration/user.js");
         };
       }));
-      config = mkIf cfg.enable {
-        home.file = lib.listToAttrs (map (profile: {
-          name = "${baseBrowsers.${browser}}/chrome/firefox-gnome-theme";
-          value = mkIf cfg.profiles.${profile}.gnome-theme {
-            source = github;
-          };
-        }) (attrNames cfg.profiles));
-      };
+    };
+    config = mkIf cfg.enable {
+      home.file = lib.listToAttrs (map (profile: {
+        name = "${baseBrowsers.${browser}}/chrome/firefox-gnome-theme";
+        value = mkIf cfg.profiles.${profile}.gnome-theme {
+          source = github;
+        };
+      }) (attrNames cfg.profiles));
     };
   }) (builtins.attrNames baseBrowsers);
 }
