@@ -2,8 +2,8 @@
 , nixosConfig
 , config
 , pkgs
-, isHomeManager
 , ... } @ variables: let
+  isHomeManager = variables ? osConfig;
   cfg =
     if isHomeManager then
       config.features.script

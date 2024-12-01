@@ -20,16 +20,12 @@
     inherit fmway;
     homeManagerModules.default = self.homeManagerModules.fmway;
     homeManagerModules.fmway = {
-      imports = [
-      { _module.args = { isHomeManager = true; }; }
-      ] ++ hmModules ++ sharedModules;
+      imports = hmModules ++ sharedModules;
       nixpkgs.overlays = [ (_: _: { lib = finalLib; }) ];
     };
     nixosModules.default = self.nixosModules.fmway;
     nixosModules.fmway = {
-      imports = [
-      { _module.args = { isHomeManager = false; }; }
-      ] ++ nixosModules ++ sharedModules;
+      imports = nixosModules ++ sharedModules;
       nixpkgs.overlays = [ (_: _: { lib = finalLib; }) ];
     };
     lib = finalLib;
