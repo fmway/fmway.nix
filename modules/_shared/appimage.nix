@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }: let
+{ config, isHomeManager, lib, pkgs, ... }: let
   inherit (builtins)
     isNull
     attrNames
@@ -44,8 +44,9 @@
 
   cfg = config.programs.appimage;
 in with lib; {
-  options.programs.appimage = {
+  options.programs.appimage = lib.optionalAttrs isHomeManager {
     enable = mkEnableOption "enable appimage";
+  } // {
     packages = mkOption {
       type = types.attrsOf (types.submodule ({ name, ... }: let
         self = cfg.packages.${name};
@@ -90,9 +91,14 @@ in with lib; {
       default = {};
     };
   };
-  config = mkIf cfg.enable {
+  config = mkIf cfg.enable (let
+    keys =
+      if isHomeManager then
+        [ "home" "packages" ]
+      else [ "environment" "systemPackages" ];
+  in lib.setAttrByPath keys {
     home.packages = map (name: let
       self = cfg.packages.${name};
     in self.result) (attrNames cfg.packages);
-  };
+  });
 }

@@ -1,28 +1,52 @@
 { lib
+, nixosConfig
 , config
 , pkgs
-, ...
-} @ variables: let
-  cfg = config.programs.script;
-  inherit (builtins) listToAttrs readFile pathExists isFunction isAttrs isString;
-  inherit (lib) mkIf mkEnableOption mkBefore mkAfter mkOption types recursiveUpdate;
+, isHomeManager
+, ... } @ variables: let
+  cfg =
+    if isHomeManager then
+      config.features.script
+    else config.programs.script;
+
+  inherit (builtins)
+    listToAttrs
+    readFile
+    pathExists
+    isFunction
+    isAttrs
+    isString
+    ;
 
   inherit (lib.fmway)
     doImport
-    getNixs
     basename
+    getNixs
   ;
-in {
-  
 
-  options.environment.script = mkOption {
-    type = types.attrs;
+  inherit (lib)
+    mkIf
+    mkEnableOption
+    mkAfter
+    mkBefore
+    mkOption
+    types
+    recursiveUpdate
+    setAttrByPath
+    ;
+    resultPath =
+      (if isHomeManager then [ "home" ] else [ "environment" ]) ++
+      [ "script" ];
+    optionsPath = (if isHomeManager then [ "features" ] else [ "programs" ]) ++
+      [ "script" ];
+in {
+  options = setAttrByPath resultPath (mkOption {
+    type = types.attrsOf types.package;
     default = {};
-  };
-  options.programs.script = {
+  }) // setAttrByPath optionsPath {
     enable = mkEnableOption "enable script";
     cwd = mkOption {
-      type = types.path;
+      type = with types; oneOf [ path (listOf path) ];
       description = "directory script";
       example = ''
         cwd = ./scripts;
@@ -33,8 +57,11 @@ in {
       default = variables;
     };
   };
-  config.environment = mkIf cfg.enable (let
-    files = getNixs cfg.cwd;
+  config.${if isHomeManager then "home" else "environment"} = mkIf cfg.enable (let
+    files =
+      if builtins.isList cfg.cwd then
+        lib.flatten (map (x: getNixs cfg.cwd) cfg.cwd)
+      else getNixs cfg.cwd;
     result = map (file: let
       context = doImport (cfg.cwd + "/${file}") cfg.variables;
       name = basename file;
@@ -59,7 +86,7 @@ in {
       inherit name value;
     }) files;
   in {
-    systemPackages = mkAfter (map (x: x.value) result);
-    script = mkBefore (listToAttrs result);
+    ${if isHomeManager then "packages" else "systemPackages"} = mkAfter (map (x: x.value) result);
+    script = listToAttrs result;
   });
 }

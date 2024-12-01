@@ -1,4 +1,4 @@
-{ lib ? import <nixpkgs/lib> {}, ... }: let
+{ lib ? (import <nixpkgs> {}).lib, ... }: let
   treeImport = import ./src/treeImport.nix rec {
     inherit lib;
     root = let

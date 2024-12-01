@@ -13,16 +13,23 @@
     fmway = import ./. { inherit lib; };
     overlay = self: super: { inherit fmway; };
     finalLib = lib.extend overlay;
+    sharedModules = fmway.genTreeImports ./modules/_shared;
+    hmModules = fmway.genTreeImports ./modules/homeManager;
+    nixosModules = fmway.genImportsWithDefault ./modules/nixos;
   in {
     inherit fmway;
     homeManagerModules.default = self.homeManagerModules.fmway;
     homeManagerModules.fmway = {
-      imports = fmway.genTreeImports ./modules/homeManager;
+      imports = [
+      { _module.args = { isHomeManager = true; }; }
+      ] ++ hmModules ++ sharedModules;
       nixpkgs.overlays = [ (_: _: { lib = finalLib; }) ];
     };
     nixosModules.default = self.nixosModules.fmway;
     nixosModules.fmway = {
-      imports = fmway.genImportsWithDefault ./modules/nixos;
+      imports = [
+      { _module.args = { isHomeManager = false; }; }
+      ] ++ nixosModules ++ sharedModules;
       nixpkgs.overlays = [ (_: _: { lib = finalLib; }) ];
     };
     lib = finalLib;
