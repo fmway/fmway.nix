@@ -43,7 +43,7 @@ in {
     };
     config = mkIf cfg.enable {
       home.file = lib.listToAttrs (map (profile: {
-        name = "${baseBrowsers.${browser}}/chrome/firefox-gnome-theme";
+        name = "${baseBrowsers.${browser}}/${profile}/chrome/firefox-gnome-theme";
         value = mkIf cfg.profiles.${profile}.gnome-theme {
           source = github;
         };
