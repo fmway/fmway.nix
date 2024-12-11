@@ -8,9 +8,9 @@
 
   isHomeManager = var ? osConfig;
 
-  buildMe = { pname, src, name, extraPkgs, x11Only, isElectron, env, ... } @ self: let
+  buildMe = { pname, src, extraPkgs, x11Only, isElectron, version, env, ... } @ self: let
     appimageContents = pkgs.appimageTools.extract {
-      inherit pname name src;
+      inherit pname version src;
       postExtract = ''
         main="$(basename "$(find $out -maxdepth 1 -name '*.desktop' | head -n 1)" .desktop)"
         execapp="$(cat "''${out}/''${main}.desktop" | grep Exec= | tr '=' ' ' | awk '{print $2}' | head -n 1)"
@@ -20,7 +20,7 @@
       '';
     };
   in pkgs.appimageTools.wrapType2 ((if self.meta != {} then { inherit (self) meta; } else {}) // {
-    inherit pname name src extraPkgs;
+    inherit pname src version extraPkgs;
 
     extraInstallCommands = let
       wrapEnv = concatStringsSep " " (
@@ -61,10 +61,6 @@ in with lib; {
           version = mkOption {
             type = types.nullOr types.str;
             default = null;
-          };
-          name = mkOption {
-            type = types.str;
-            default = self.pname + (optionalString (!isNull self.version) "-${self.version}");
           };
           src = mkOption {
             type = with types; oneOf [ package path ];
