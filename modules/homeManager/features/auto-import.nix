@@ -7,6 +7,7 @@
   inherit (builtins)
     readDir
     attrNames
+    listToAttrs
     ;
 
   inherit (lib.fmway)
@@ -16,56 +17,48 @@
     treeImport
   ;
 
-  inherit (lib)
-    recursiveUpdate
-    listToAttrs
-    mkIf
-    mkOption
-    mkEnableOption
-    types
-    ;
-
-  enableFeatures = cwd: let
-    dirs = attrNames (excludeItems [ ".alias.nix" ".var.nix" "default.nix" ] (readDir cwd)); 
+  enableFeatures = let
+    dirs = attrNames (excludeItems [ ".alias.nix" ".var.nix" "default.nix" ] (readDir cfg.cwd)); 
   in listToAttrs (map (x: let
     exts = matchers.getExt (cfg.includes ++ [ matchers.nix ]); 
   in {
     name = removeExtension exts x;
     value = {
-      enable = true;
+      enable = lib.mkDefault true;
     };
   }) dirs);
 
 in {
-  options.features.programs.auto-import = {
+  options.features.programs.auto-import = with lib;{
     enable = mkEnableOption "enable auto import";
-    auto-enable = mkEnableOption "auto enable programs";
+    auto-enable = mkEnableOption "auto enable programs" // { default = true; };
     cwd = mkOption {
-      type = types.nullOr types.path;
+      type = with types; nullOr path;
       default = null;
     };
     excludes = mkOption {
-      type = types.listOf types.str;
+      type = with types; listOf str;
       default = [];
     };
 
     includes = mkOption {
-      type = types.listOf types.attrs;
+      type = with types; listOf attrs;
       default = [];
     };
   };
 
-  config = mkIf (cfg.enable && cfg.cwd != null) {
-    programs = let
-      result = treeImport {
+  config = lib.mkMerge [
+    (lib.mkIf (cfg.enable && cfg.cwd != null && cfg.auto-enable) {
+      programs = enableFeatures;
+    })
+
+    (lib.mkIf (cfg.enable && cfg.cwd != null) {
+       programs = treeImport {
         folder = cfg.cwd;
         depth = 0; # include top-level default.nix
         inherit variables;
         inherit (cfg) excludes includes;
       };
-    in
-      if cfg.auto-enable then
-        recursiveUpdate (enableFeatures cfg.cwd) result
-      else result;
-  };
+    })
+  ];
 }
