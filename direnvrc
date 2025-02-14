@@ -1,0 +1,56 @@
+unlink_prev_extra_files() {
+  find . -name '*' -type l | grep -vE '^\./\.direnv/' | while read line; do
+    if [[ "$(realpath "$line")" =~ ^/nix/store ]]; then
+      unlink "$line"
+    fi
+  done
+}
+link_extra_files() {
+  [ ! -z "${EXTRA_FILES_PATH}" ] || return
+  root_dir=$(realpath $(direnv_layout_dir)/..)
+  echo $EXTRA_FILES_PATH | tr ':' '\n' | while read line; do
+    IFS="=" read -r target v <<< "$line"
+    IFS="," read -r source file_type <<< "$v"
+    if [[ "${target}" =~ "/" ]]; then
+      dir=$(echo "${target}" |  awk 'BEGIN{FS=OFS="/"}NF--')
+      [ -d "${dir}" ] || mkdir -p "${dir}"
+    fi
+    case "$file_type" in
+      block)
+        if [ -d "$source" ]; then
+          [ ! -e "$target" ] || rm -rf "$target"
+          cp -rf $source $target
+        else
+          cat $source > $target
+        fi
+        ;;
+      block-append)
+        if [ -d "$source" ]; then
+          # TODO
+          [ ! -e "$target" ] &&
+            cp -rf $source/* $source/.* $target/ ||
+            cp -rf $source $target
+        else
+          [ -e "${target}" ] || touch "${target}"
+          l='### BEGIN GENERATED '${target}' CONTENT ###'
+          t='### END GENERATED '${target}' CONTENT ###'
+          lead='^'${l}'$'
+          tail='^'${t}'$'
+          if ! cat "${target}" | grep "${l}" &>/dev/null || ! cat "${target}" | grep "${t}" &>/dev/null; then
+            echo "${l}" >> "${target}"
+            cat "${source}" >> "${target}"
+            echo "${t}" >> "${target}"
+          else
+            sed -ie "/$lead/,/$tail/{ /$lead/{p; r $source
+                   }; /$tail/p; d }"  "$target"
+          fi
+        fi
+        ;;
+      symlink)
+        ln -sf $source $target
+        ;;
+      *)
+        ;;
+    esac
+  done
+}
