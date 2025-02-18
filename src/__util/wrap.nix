@@ -1,32 +1,34 @@
-{ inputs, ... }: let
-  myInputs = inputs;
-in {
+{ root, ... }:
+{
   mkFlake = { enableOverlays ? false, inputs, ... } @ v1: let
     arg1 = removeAttrs v1 [ "enableOverlays" ] // {
       specialArgs = (v1.specialArgs or {}) // {
-        inherit (myInputs.self.outputs) lib;
+        lib = inputs.nixpkgs.lib.extend (self: super: { fmway = root; flake-parts = inputs.flake-parts.lib; });
       };
     };
   in  { ... } @ v2: let
-    arg2 = v2 // {
-      imports = (v2.imports or []) ++ [
+    arg2 = { pkgs, ... } @argv: let
+      arg = if builtins.isAttrs v2 then v2 else v2 argv // { inherit pkgs; };
+    in arg // {
+      imports = (arg.imports or []) ++ [
         {
           perSystem = { system, ... }: let
             pkgs = import inputs.nixpkgs {
               inherit system;
               overlays = let
-                o = v2.overlays or {};
-              in
-              if o ? default then
+                o = res.overlays or {};
+              in inputs.nixpkgs.lib.optionals enableOverlays 
+              (if o ? default then
                 [ o.default ]
               else
-                map (x: o.${x}) (builtins.attrNames o); 
+                map (x: o.${x}) (builtins.attrNames o)); 
             };
           in {
-            config._module.args.pkgs = inputs.nixpkgs.lib.mkIf enableOverlays pkgs;
+            config._module.args.pkgs = pkgs;
           };
         }
       ];
     };
-  in inputs.flake-parts.lib.mkFlake arg1 arg2;
+    res = inputs.flake-parts.lib.mkFlake arg1 arg2;
+  in res;
 }
