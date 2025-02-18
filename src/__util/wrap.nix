@@ -7,14 +7,16 @@
       };
     };
   in  { ... } @ v2: let
-    arg2 = v2 // {
-      imports = (v2.imports or []) ++ [
+    arg2 = { pkgs, ... } @argv: let
+      arg = if builtins.isAttrs v2 then v2 else v2 argv // { inherit pkgs; };
+    in arg // {
+      imports = (arg.imports or []) ++ [
         {
           perSystem = { system, ... }: let
             pkgs = import inputs.nixpkgs {
               inherit system;
               overlays = let
-                o = v2.overlays or {};
+                o = arg.flake.overlays or {};
               in
               if o ? default then
                 [ o.default ]
