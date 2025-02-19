@@ -41,8 +41,10 @@ link_extra_files() {
             cat "${source}" >> "${target}"
             echo "${t}" >> "${target}"
           else
-            sed -ie "/$lead/,/$tail/{ /$lead/{p; r $source
-                   }; /$tail/p; d }"  "$target"
+            T=$(mktemp)
+            sed -e "/$lead/,/$tail/{ /$lead/{p; r $source
+                   }; /$tail/p; d }"  "$target" > $T
+            cat "${T}" > "${target}"
           fi
         fi
         ;;
