@@ -19,16 +19,14 @@
     nixosModules = fmway.genImportsWithDefault ./modules/nixos;
   in {
     inherit fmway;
-    homeManagerModules.default = self.homeManagerModules.fmway;
-    homeManagerModules.fmway = {
-      imports = hmModules ++ sharedModules;
+    homeManagerModules.default = self.homeManagerModules.fmway // {
       nixpkgs.overlays = [ (_: _: { lib = finalLib; }) ];
     };
-    nixosModules.default = self.nixosModules.fmway;
-    nixosModules.fmway = {
-      imports = nixosModules ++ sharedModules;
+    homeManagerModules.fmway.imports = hmModules ++ sharedModules;
+    nixosModules.default = self.nixosModules.fmway // {
       nixpkgs.overlays = [ (_: _: { lib = finalLib; }) ];
     };
+    nixosModules.fmway.imports = nixosModules ++ sharedModules;
     lib = finalLib;
     overlays.default = overlay;
   };
