@@ -1,3 +1,4 @@
+isHomeManager:
 { config, lib, pkgs, ... } @ var: let
   inherit (builtins)
     isNull
@@ -5,8 +6,6 @@
     concatStringsSep
     map
   ;
-
-  isHomeManager = var ? osConfig;
 
   buildMe = { pname, src, extraPkgs, x11Only, isElectron, version, env, ... } @ self: let
     appimageContents = pkgs.appimageTools.extract {

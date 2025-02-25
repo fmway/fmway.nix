@@ -14,7 +14,7 @@
     fmway = import ./. { inherit lib; };
     overlay = self: super: { inherit fmway; };
     finalLib = lib.extend overlay;
-    sharedModules = fmway.genTreeImports ./modules/_shared;
+    sharedModules = isHM: map (x: { _file = x; imports = [ (import x isHM) ]; }) (fmway.genTreeImports ./modules/_shared);
     hmModules = fmway.genTreeImports ./modules/homeManager;
     nixosModules = fmway.genImportsWithDefault ./modules/nixos;
   in {
@@ -22,11 +22,11 @@
     homeManagerModules.default = self.homeManagerModules.fmway // {
       nixpkgs.overlays = [ (_: _: { lib = finalLib; }) ];
     };
-    homeManagerModules.fmway.imports = hmModules ++ sharedModules;
+    homeManagerModules.fmway.imports = hmModules ++ sharedModules true;
     nixosModules.default = self.nixosModules.fmway // {
       nixpkgs.overlays = [ (_: _: { lib = finalLib; }) ];
     };
-    nixosModules.fmway.imports = nixosModules ++ sharedModules;
+    nixosModules.fmway.imports = nixosModules ++ sharedModules false;
     lib = finalLib;
     overlays.default = overlay;
   };

@@ -1,15 +1,15 @@
-{ config, lib, nixosConfig, ... } @ var: let
+isHomeManager:
+{ config, lib, ... } @ var: let
   inherit (lib)
     mkOption
     types
     ;
-  isHomeManager = var ? osConfig;
 in {
   options.data = mkOption {
     type = types.attrs;
     default = {};
   };
   config = lib.mkIf isHomeManager {
-    data = lib.mkBefore nixosConfig.data;
+    data = lib.mkBefore (var.osConfig.data or {});
   };
 }
