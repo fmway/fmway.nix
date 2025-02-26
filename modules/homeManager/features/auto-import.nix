@@ -27,14 +27,19 @@
       enable = lib.mkDefault true;
     };
   }) dirs);
+  res = treeImport {
+    folder = cfg.cwd;
+    depth = 0; # include top-level default.nix
+    inherit variables;
+    inherit (cfg) excludes includes;
+  };
 
 in {
   options.features.programs.auto-import = with lib;{
     enable = mkEnableOption "enable auto import";
     auto-enable = mkEnableOption "auto enable programs" // { default = true; };
     cwd = mkOption {
-      type = with types; nullOr path;
-      default = null;
+      type = with types; path;
     };
     excludes = mkOption {
       type = with types; listOf str;
@@ -47,18 +52,7 @@ in {
     };
   };
 
-  config = lib.mkMerge [
-    (lib.mkIf (cfg.enable && cfg.cwd != null && cfg.auto-enable) {
-      programs = enableFeatures;
-    })
-
-    (lib.mkIf (cfg.enable && cfg.cwd != null) {
-       programs = treeImport {
-        folder = cfg.cwd;
-        depth = 0; # include top-level default.nix
-        inherit variables;
-        inherit (cfg) excludes includes;
-      };
-    })
-  ];
+  config = lib.mkIf cfg.enable {
+    programs = lib.recursiveUpdate res (lib.optionalAttrs (cfg.auto-enable) enableFeatures);
+  };
 }
