@@ -1,9 +1,10 @@
-{ root, ... }:
-{
+{ root, inputs, ... }: let
+  inherit (inputs) flake-parts;
+in {
   mkFlake = { enableOverlays ? false, inputs, ... } @ v1: let
     arg1 = removeAttrs v1 [ "enableOverlays" ] // {
       specialArgs = (v1.specialArgs or {}) // {
-        lib = inputs.nixpkgs.lib.extend (self: super: { fmway = root; flake-parts = inputs.flake-parts.lib; });
+        lib = inputs.nixpkgs.lib.extend (self: super: { fmway = root; flake-parts = flake-parts.lib; });
       };
     };
   in  { ... } @ v2: let
@@ -29,6 +30,6 @@
         }
       ];
     };
-    res = inputs.flake-parts.lib.mkFlake arg1 arg2;
+    res = flake-parts.lib.mkFlake arg1 arg2;
   in res;
 }

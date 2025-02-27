@@ -4,6 +4,8 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     flake-parts.url = "github:hercules-ci/flake-parts";
+    flake-compat.url = "github:edolstra/flake-compat";
+    flake-compat.flake = false;
     # TODO
     # nix-parsec.url = "github:nprindle/nix-parsec";
   };
@@ -11,7 +13,24 @@
   outputs = { self, nixpkgs, ... } @ inputs: let
     # TODO eachSystem
     inherit (nixpkgs) lib;
-    fmway = import ./. { inherit lib; };
+    fmway = let
+      treeImport = import ./src/treeImport.nix rec {
+        inherit lib;
+        root = let
+          var = { inherit lib root; };
+          small = import ./src/__util/small-functions.nix var;
+          for-import = import ./src/__util/for-import.nix var;
+          tree-path = import ./src/tree-path.nix var;
+          matchers = import ./src/matchers.nix var;
+        in small // for-import // {
+          inherit tree-path matchers;
+        };
+      };
+    in treeImport {
+      folder = ./src;
+      variables = { inherit lib inputs; };
+      depth = 0;
+    };
     overlay = self: super: { inherit fmway; };
     finalLib = lib.extend overlay;
     sharedModules = isHM: map (x: { _file = x; imports = [ (import x isHM) ]; }) (fmway.genTreeImports ./modules/_shared);
