@@ -1,12 +1,10 @@
 { lib, ... }:
 {
   createShell = pkgs: v: let
-    specialArgs = {
-      inherit pkgs self;
-    };
     module = lib.evalModules {
-      inherit specialArgs;
+      specialArgs = { inherit self self'; };
       modules = (o.imports or []) ++ [
+      { _module.args.pkgs = lib.mkDefault pkgs; }
       ({ config, ... }: {
         options.build.env = lib.mkOption {
           type = with lib.types; attrsOf str;
@@ -73,16 +71,18 @@
     extraFiles = o.extraFiles or {};
     o =
       if lib.isFunction v then
-        v (specialArgs // {
+        v {
           inherit (module) config;
-          inherit lib;
-        })
+          inherit (module.options._module.args.value) pkgs;
+          inherit lib self self';
+        }
       else
         v;
-    args = removeAttrs o [ "extraFiles" "EXTRA_FILES_PATH" "imports" ] // module.config.build.env;
-    self = pkgs.mkShell args // {
-      inherit pkgs;
+    self' = removeAttrs o [ "extraFiles" "EXTRA_FILES_PATH" "imports" "_module" ] // module.config.build.env;
+    self = pkgs.mkShell self' // {
+      inherit (module.options._module.args.value) pkgs;
       inherit (module) config options;
+      args = self';
     }; 
   in self;
 }
