@@ -8,7 +8,7 @@
       inherit specialArgs;
       modules = (o.imports or []) ++ [
       ({ config, ... }: {
-        options.result = lib.mkOption {
+        options.build.env = lib.mkOption {
           type = with lib.types; attrsOf str;
           default = {};
         };
@@ -41,15 +41,15 @@
             config.target = name;
             config.finalSource = let
               notNull = !isNull config.source || !isNull config.text;
-              result =
+              src =
                 if ! isNull config.source then
                   config.source
                 else pkgs.writeText (lib.replaceStrings ["/"] ["-"] config.target) config.text;
-            in lib.mkIf notNull result;
+            in lib.mkIf notNull src;
           }));
         };
 
-        config.result = let
+        config.build.env = let
           inherit (config) extraFiles;
           nonEmpty = extraFiles != {};
           filtered = lib.filter (x: extraFiles.${x}.enable) (lib.attrNames extraFiles);
@@ -79,7 +79,7 @@
         })
       else
         v;
-    args = removeAttrs o [ "extraFiles" "EXTRA_FILES_PATH" "imports" ] // module.config.result;
+    args = removeAttrs o [ "extraFiles" "EXTRA_FILES_PATH" "imports" ] // module.config.build.env;
     self = pkgs.mkShell args // {
       inherit pkgs;
       inherit (module) config options;
