@@ -65,5 +65,5 @@
       ];
     };
     args = removeAttrs v [ "extraFiles" ] // module.config.result;
-  in pkgs.mkShell args;
+  in pkgs.mkShell args // { inherit pkgs; };
 }
