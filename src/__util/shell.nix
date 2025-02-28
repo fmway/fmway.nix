@@ -1,8 +1,12 @@
 { lib, ... }:
 {
-  createShell = pkgs: { extraFiles ? {}, ... } @ v: let
+  createShell = pkgs: v: let
+    specialArgs = {
+      inherit pkgs self;
+    };
     module = lib.evalModules {
-      modules = [
+      inherit specialArgs;
+      modules = (o.imports or []) ++ [
       ({ config, ... }: {
         options.result = lib.mkOption {
           type = with lib.types; attrsOf str;
@@ -58,12 +62,27 @@
             generatedGitignore = pkgs.writeText ".gitignore" ''
               ${lib.concatStringsSep "\n" gitignored}
             '';
-          in lib.concatStringsSep ":" r + lib.optionalString (gitignored != []) ":.gitignore=${generatedGitignore},block-append";
+          in lib.concatStringsSep ":" r
+           + lib.optionalString (gitignored != []) ":.gitignore=${generatedGitignore},block-append"
+           + (o.EXTRA_FILES_PATH or "");
         };
       })
       { inherit extraFiles; }
       ];
     };
-    args = removeAttrs v [ "extraFiles" ] // module.config.result;
-  in pkgs.mkShell args // { inherit pkgs; };
+    extraFiles = o.extraFiles or {};
+    o =
+      if lib.isFunction v then
+        v (specialArgs // {
+          inherit (module) config;
+          inherit lib;
+        })
+      else
+        v;
+    args = removeAttrs o [ "extraFiles" "EXTRA_FILES_PATH" "imports" ] // module.config.result;
+    self = pkgs.mkShell args // {
+      inherit pkgs;
+      inherit (module) config options;
+    }; 
+  in self;
 }
