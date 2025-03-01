@@ -75,7 +75,7 @@
     in recursiveUpdate acc (if isDefault then res else { "${name}" = res; })) {} (attrNames obj);
   in result;
 
-  treeImport' = { folder, variables ? {}, depth ? 1, excludes ? [], includes ? [] }: let
+  treeImport' = { folder, variables ? {}, depth ? 1, max ? 0, excludes ? [], includes ? [] }: let
     includess = includes ++
       optionals (all (x: x._type != "matcher-by-nix") includes) [ matchers.nix ];
     # ext = [ "nix" ] ++ (getExt includes);
@@ -97,11 +97,18 @@
 
     lists = tree-path { dir = folder; prefix = ""; };
 
+    filteredByMax =
+      if max <= 0 then
+        lists
+      else filter (x: let
+        res = splitString "/" x;
+      in lib.length res <= max) lists;
+
     filteredByDepth = filter (x: let
       splitted = let
         res = splitString "/" x;
       in if last res == "default.nix" then take (length res - 1) res else res;
-    in length splitted >= depth) lists;
+    in length splitted >= depth) filteredByMax;
     
     filteredByExcludes = excludePrefix excludes filteredByDepth;
 
