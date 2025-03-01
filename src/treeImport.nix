@@ -102,7 +102,9 @@
         lists
       else filter (x: let
         res = splitString "/" x;
-      in lib.length res <= max) lists;
+        is-a-var = lib.any (x: hasPrefix' "__" x) (lib.genList (x: lib.elemAt res x) max);
+        less-than-max = lib.length res <= max;
+      in is-a-var || less-than-max) lists;
 
     filteredByDepth = filter (x: let
       splitted = let
