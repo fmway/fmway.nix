@@ -66,6 +66,15 @@
         };
       })
       { inherit extraFiles; }
+      {
+        extraFiles.".direnv/.gitignore" = {
+          text = lib.mkDefault ''
+            *
+            .*
+          '';
+          fileType = lib.mkDefault "block";
+        };
+      }
       ];
     };
     extraFiles = o.extraFiles or {};
