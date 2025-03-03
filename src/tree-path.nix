@@ -32,10 +32,10 @@
       let
         inherit (val) type path prefix;
       in
-      if type == "regular" then
-        prefix
+      if type == "directory" then
+        all { dir = path; prefix = prefix; }
       else
-        all { dir = path; prefix = prefix; };
+        prefix;
 
     all = { dir, prefix }: map condition (toList {
       attr = readDir dir;
