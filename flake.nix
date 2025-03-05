@@ -36,8 +36,12 @@
     sharedModules = isHM: map (x: { _file = x; imports = [ (import x isHM) ]; }) (fmway.genTreeImports ./modules/_shared);
     hmModules = fmway.genTreeImports ./modules/homeManager;
     nixosModules = fmway.genImportsWithDefault ./modules/nixos;
+    flakeModules = builtins.listToAttrs (map (path: {
+      name = fmway.basename path;
+      value = "${./modules/flake}/${path}";
+    }) (fmway.getNixs ./modules/flake));
   in {
-    inherit fmway;
+    inherit fmway flakeModules;
     homeManagerModules.default = self.homeManagerModules.fmway // {
       nixpkgs.overlays = [ (_: _: { lib = finalLib; }) ];
     };
