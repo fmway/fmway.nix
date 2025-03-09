@@ -34,11 +34,13 @@ isHomeManager:
     in ''
       source "${pkgs.makeWrapper}/nix-support/setup-hook"
       wrapProgram $out/bin/${pname} ${wrapEnv} ${lib.optionalString x11Only wrapOnlyX11} ${lib.optionalString (!x11Only && isElectron) wrapOzone}
-      mkdir -p $out/share/icons/hicolor/512x512/apps
       install -m 444 -D ${appimageContents}/${pname}.desktop $out/share/applications/${pname}.desktop
-      [ -e ${appimageContents}/usr/share ] &&
-        cp -r ${appimageContents}/usr/share $out ||
+      if [ -e ${appimageContents}/usr/share ]; then
+        cp -r ${appimageContents}/usr/share $out
+      else
+        mkdir -p $out/share/icons/hicolor/512x512/apps
         cp ${appimageContents}/*.png $out/share/icons/hicolor/512x512/apps/
+      fi
     '';
     
   });
