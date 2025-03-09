@@ -10,6 +10,10 @@
       };
       modules = [
         (devenv.modules + /top-level.nix)
+        { _module.args = { systemConfig = config; inherit system; }; }
+        ({ config, options, ... }: {
+          outputs = { inherit options config; };  
+        })
         ({ config, pkgs, ... }: {
           packages = pkgs.lib.mkBefore [
             (import "${devenv}/src/devenv-devShell.nix" { inherit config pkgs; })
@@ -17,10 +21,7 @@
           devenv.warnOnNewVersion = false;
           devenv.flakesIntegration = true;
         })
-        ({ config, options, ... }: {
-          outputs = { inherit options config; };  
-        })
-        ({ config, options, ... }: let
+        ({ config, ... }: let
           finalPkgs = pkgs.appendOverlays config.nixpkgs.overlays;
         in {
           options.nixpkgs.overlays = lib.mkOption {
@@ -34,7 +35,7 @@
           };
           config = {
             _module.args = {
-              pkgs = lib.mkOverride 101 finalPkgs.__splicedPackages;
+              pkgs = lib.mkIf (config.nixpkgs.overlays != []) (lib.mkOverride 101 finalPkgs.__splicedPackages);
             };
           };
           })
