@@ -21,7 +21,7 @@
           devenv.warnOnNewVersion = false;
           devenv.flakesIntegration = true;
         })
-        ({ config, ... }: let
+        ({ config, options, ... }: let
           finalPkgs = pkgs.appendOverlays config.nixpkgs.overlays;
         in {
           options.nixpkgs.overlays = lib.mkOption {
@@ -35,7 +35,7 @@
           };
           config = {
             _module.args = {
-              pkgs = lib.mkIf (config.nixpkgs.overlays != []) (lib.mkOverride 101 finalPkgs.__splicedPackages);
+              pkgs = lib.mkOverride 101 finalPkgs.__splicedPackages;
             };
           };
           })

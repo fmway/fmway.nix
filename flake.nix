@@ -51,6 +51,10 @@
     };
     nixosModules.fmway.imports = nixosModules ++ sharedModules false;
     lib = finalLib;
+    templates.devenv = {
+      path = ./templates/devenv;
+      description = "simple devenv";
+    };
     overlays.default = overlay;
   };
 }
