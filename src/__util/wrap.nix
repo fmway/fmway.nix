@@ -2,10 +2,10 @@
   inherit (inputs) flake-parts;
   selfInputs = inputs;
 in {
-  mkFlake = { enableOverlays ? false, inputs, ... } @ v1: let
-    arg1 = removeAttrs v1 [ "enableOverlays" ] // {
+  mkFlake = { inputs, ... } @ v1: let
+    arg1 = v1 // {
       specialArgs = (v1.specialArgs or {}) // {
-        lib = inputs.nixpkgs.lib.extend (self: super: {
+        lib = (v1.specialArgs.lib or {}) // inputs.nixpkgs.lib.extend (self: super: {
           fmway = root // {
             getInput = x: inputs.${x} or selfInputs.${x};
           };
@@ -13,29 +13,9 @@ in {
         });
       };
     };
-  in  { ... } @ v2: let
-    arg2 = { pkgs, ... } @argv: let
-      arg = if builtins.isAttrs v2 then v2 else v2 argv // { inherit pkgs; };
-    in arg // {
-      imports = (arg.imports or []) ++ [
-        {
-          perSystem = { system, ... }: let
-            pkgs = import inputs.nixpkgs {
-              inherit system;
-              overlays = let
-                o = res.overlays or {};
-              in inputs.nixpkgs.lib.optionals enableOverlays 
-              (if o ? default then
-                [ o.default ]
-              else
-                map (x: o.${x}) (builtins.attrNames o)); 
-            };
-          in {
-            config._module.args.pkgs = pkgs;
-          };
-        }
-      ];
-    };
-    res = flake-parts.lib.mkFlake arg1 arg2;
-  in res;
+  in arg2: let
+    res = flake-parts.lib.evalFlakeModule arg1 arg2;
+  in res.config.flake // {
+    _self = { inherit (res) config options; };
+  };
 }

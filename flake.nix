@@ -38,7 +38,7 @@
     nixosModules = fmway.genImportsWithDefault ./modules/nixos;
     flakeModules = builtins.listToAttrs (map (path: {
       name = fmway.basename path;
-      value = "${./modules/flake}/${path}";
+      value = import "${./modules/flake}/${path}" { lib = finalLib; inherit inputs; };
     }) (fmway.getNixs ./modules/flake));
   in {
     inherit fmway flakeModules;

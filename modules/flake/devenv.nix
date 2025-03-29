@@ -1,7 +1,9 @@
 # devenv with nixpkgs.overlays
-{ flake-parts-lib, lib, inputs, ... }: {
+{ lib, inputs, ... }: let
+  superInputs = inputs;
+in { flake-parts-lib, inputs, ... }: {
   options.perSystem = flake-parts-lib.mkPerSystemOption ({ config, pkgs, system, ... }: let
-    devenv = lib.fmway.getInput "devenv";
+    devenv = inputs.devenv or superInputs.devenv;
     devenvType = (lib.evalModules {
       specialArgs = let
         moduleInputs = { inherit (devenv.inputs) git-hooks; } // inputs;
