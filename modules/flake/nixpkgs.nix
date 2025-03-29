@@ -3,7 +3,7 @@
   superInputs = inputs;
 in { flake-parts-lib, inputs, ... }: {
   options.perSystem = flake-parts-lib.mkPerSystemOption ({ config, pkgs, system, ... }: let
-    pkgsPath = builtins.toPath (inputs.nixpkgs or superInputs.pkgs);
+    pkgsPath = builtins.toPath (inputs.nixpkgs or superInputs.nixpkgs);
     isConfig = x: builtins.isAttrs x || builtins.isFunction x;
     optCall = f: x: if builtins.isFunction f then f x else f;
 
