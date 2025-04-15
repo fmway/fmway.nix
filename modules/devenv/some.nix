@@ -12,9 +12,9 @@ in {
         default = [];
       };
 
-      config.env.NIXD_PATH = let
-        result = lib.concatStringsSep ":" config.nixd.paths;
-      in lib.mkIf (config.nixd.paths != []) result;
+      config = lib.mkIf (config.nixd.paths != []) {
+        env.NIXD_PATH = lib.concatStringsSep ":" config.nixd.paths;
+      };
     })
   ];
   config.tasks."devenv:gitignore" = {
