@@ -34,14 +34,18 @@
     overlay = self: super: { inherit fmway; };
     finalLib = lib.extend overlay;
     sharedModules = isHM: map (x: { _file = x; imports = [ (import x isHM) ]; }) (fmway.genTreeImports ./modules/_shared);
-    hmModules = fmway.genTreeImports ./modules/homeManager;
+    hmModules = fmway.genTreeImports ./modules/home-manager;
     nixosModules = fmway.genImportsWithDefault ./modules/nixos;
     flakeModules = builtins.listToAttrs (map (path: {
       name = fmway.basename path;
       value = import "${./modules/flake}/${path}" { lib = finalLib; inherit inputs; };
     }) (fmway.getNixs ./modules/flake));
+    devenvModules = builtins.listToAttrs (map (path: {
+      name = fmway.basename path;
+      value = import "${./modules/devenv}/${path}" { lib = finalLib; inherit inputs; };
+    }) (fmway.getNixs ./modules/devenv));
   in {
-    inherit fmway flakeModules;
+    inherit fmway flakeModules devenvModules;
     homeManagerModules.default = self.homeManagerModules.fmway // {
       nixpkgs.overlays = [ (_: _: { lib = finalLib; }) ];
     };
