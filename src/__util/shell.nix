@@ -94,4 +94,30 @@
       args = self';
     }; 
   in self;
+
+  devenvToDevbox = pkgs: shell: let
+    isDevboxed = x: lib.any (y: x == y) [
+      "DEVENV_ROOT"
+      "DEVENV_STATE"
+      "DEVENV_DOTFILE"
+    ];
+    init = pkgs.writeScriptBin "env-init" /* bash */ ''
+      #!${lib.getExe pkgs.bash}
+      ${lib.pipe shell.env [
+        (lib.attrNames)
+        (map (x:
+          "export ${x}=${
+            lib.optionalString (isDevboxed x) "$DEVBOX_WD" +
+            lib.escapeShellArg shell.env.${x}
+          }"
+        ))
+        (lib.concatStringsSep "\n")
+      ]}
+    '';
+  in pkgs.symlinkJoin {
+    inherit (shell) name;
+    paths = shell.packages ++ [
+      init
+    ];
+  };
 }
