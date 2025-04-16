@@ -6,10 +6,13 @@
   '';
 in {
   imports = [
-    ({ config, lib, ... }: {
+    ({ name, inputs, pkgs, config, lib, ... }: {
       options.nixd.paths = lib.mkOption {
         type = with lib.types; listOf str;
-        default = [];
+        default = [
+          "devenv (${name})=${inputs.self.outPath}#devShells.${pkgs.system}.${name}.options"
+          "pkgs=${inputs.self.outPath}#devShells.${pkgs.system}.${name}.pkgs"
+        ];
       };
 
       config = lib.mkIf (config.nixd.paths != []) {
