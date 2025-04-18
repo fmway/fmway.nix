@@ -107,12 +107,14 @@
         (lib.attrNames)
         (map (x:
           "export ${x}=${
-            lib.optionalString (isDevboxed x) "$DEVBOX_WD" +
+            lib.optionalString (isDevboxed x) "$DEVBOX_PROJECT_ROOT" +
             lib.escapeShellArg shell.env.${x}
           }"
         ))
         (lib.concatStringsSep "\n")
       ]}
+
+      ${lib.replaceStrings [ "/.devenv/run" ] [ "$DEVBOX_PROJECT_ROOT/.devenv/run" ] shell.enterShell}
     '';
   in pkgs.symlinkJoin {
     inherit (shell) name;
