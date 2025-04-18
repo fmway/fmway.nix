@@ -11,6 +11,12 @@ in {
         type = with lib.types; listOf str;
       };
 
+      options.backupFileExtension = lib.mkOption {
+        type = with lib.types; nullOr str;
+        description = "extensions to backup when its conflict";
+        default = null;
+      };
+
       config = lib.mkIf (config.nixd.paths != []) {
         env.NIXD_PATH = lib.concatStringsSep ":" config.nixd.paths;
       };
@@ -37,7 +43,13 @@ in {
       cdd="$DEVENV_DOTFILE/.clean"
       if [ -e "$cdd" ]; then
         cat "$cdd" | while read i; do
-          unlink "$DEVENV_ROOT/$i"
+          [ -e "$DEVENV_ROOT/$i" ] || continue
+          if [ -L "$DEVENV_ROOT/$i" ]; then
+            unlink "$DEVENV_ROOT/$i"
+          ${lib.optionalString (!isNull config.backupFileExtension)
+              ''else mv "$DEVENV_ROOT/$i" "$DEVENV_ROOT/$i${config.backupFileExtension}"''
+            }
+          fi
         done
       fi
     '' + lib.optionalString (config.files != []) /* bash */ ''
