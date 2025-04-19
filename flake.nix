@@ -2,7 +2,7 @@
   description = "Collection of functions and modules for nix in my own way";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:nix-community/nixpkgs.lib";
     flake-parts.url = "github:hercules-ci/flake-parts";
     flake-compat.url = "github:edolstra/flake-compat";
     flake-compat.flake = false;
@@ -11,7 +11,6 @@
   };
 
   outputs = { self, nixpkgs, ... } @ inputs: let
-    # TODO eachSystem
     inherit (nixpkgs) lib;
     fmway = let
       treeImport = import ./src/treeImport.nix rec {
