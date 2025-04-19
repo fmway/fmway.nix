@@ -34,6 +34,22 @@
         "type": "github"
       }
     },
+    "infuse-nix": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1738726976,
+        "narHash": "sha256-N+u3vnK3zyXLUuDj/vr62r9tM7uarhKVCaLHWxjo/YY=",
+        "ref": "refs/heads/trunk",
+        "rev": "c8fb7397039215e1444c835e36a0da7dc3c743f8",
+        "revCount": 48,
+        "type": "git",
+        "url": "https://codeberg.org/amjoseph/infuse.nix"
+      },
+      "original": {
+        "type": "git",
+        "url": "https://codeberg.org/amjoseph/infuse.nix"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1744511788,
@@ -65,6 +81,7 @@
       "inputs": {
         "flake-compat": "flake-compat",
         "flake-parts": "flake-parts",
+        "infuse-nix": "infuse-nix",
         "nixpkgs": "nixpkgs"
       }
     }

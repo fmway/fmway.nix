@@ -6,6 +6,8 @@
     flake-parts.url = "github:hercules-ci/flake-parts";
     flake-compat.url = "github:edolstra/flake-compat";
     flake-compat.flake = false;
+    infuse-nix.url = "git+https://codeberg.org/amjoseph/infuse.nix";
+    infuse-nix.flake = false;
     # TODO
     # nix-parsec.url = "github:nprindle/nix-parsec";
   };
@@ -30,7 +32,18 @@
       variables = { inherit lib inputs; };
       depth = 0;
     };
-    overlay = self: super: { inherit fmway; };
+    infuse = let
+      fn = import inputs.infuse-nix;
+      defaultInfuse = fn { inherit lib; };
+      self = {
+        sugars = defaultInfuse.v1.default-sugars;
+        __functor = self': (fn { inherit lib; inherit (self') sugars; }).v1.infuse;
+        sugarify = sugars: self self {
+          sugars.__append = lib.attrsToList sugars;
+        };
+      };
+    in self;
+    overlay = self: super: { inherit fmway infuse; };
     finalLib = lib.extend overlay;
     sharedModules = isHM: map (x: { _file = x; imports = [ (import x isHM) ]; }) (fmway.genTreeImports ./modules/_shared);
     hmModules = fmway.genTreeImports ./modules/home-manager;
@@ -44,7 +57,7 @@
       value = import "${./modules/devenv}/${path}" { lib = finalLib; inherit inputs; };
     }) (fmway.getNixs ./modules/devenv));
   in {
-    inherit fmway flakeModules devenvModules;
+    inherit fmway flakeModules devenvModules infuse;
     homeManagerModules.default = self.homeManagerModules.fmway // {
       nixpkgs.overlays = [ (_: _: { lib = finalLib; }) ];
     };
