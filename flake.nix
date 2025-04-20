@@ -35,14 +35,12 @@
     infuse = let
       fn = import inputs.infuse-nix;
       defaultInfuse = fn { inherit lib; };
-      self = {
-        sugars = defaultInfuse.v1.default-sugars;
-        __functor = self': (fn { inherit lib; inherit (self') sugars; }).v1.infuse;
-        sugarify = sugars: self self {
-          sugars.__append = lib.attrsToList sugars;
-        };
+      mkFn = sugars: {
+        _sugars = sugars;
+        __functor = self': (fn { inherit lib; sugars = self'._sugars; }).v1.infuse;
+        sugarify = { ... } @ sugars': mkFn (fmway.uniqLastBy (x: x.name) (sugars ++ lib.attrsToList sugars'));
       };
-    in self;
+    in mkFn defaultInfuse.v1.default-sugars;
     overlay = self: super: { inherit fmway infuse; };
     finalLib = lib.extend overlay;
     sharedModules = isHM: map (x: { _file = x; imports = [ (import x isHM) ]; }) (fmway.genTreeImports ./modules/_shared);

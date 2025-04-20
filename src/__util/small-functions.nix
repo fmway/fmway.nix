@@ -26,22 +26,36 @@
     flatten
     removePrefix
     removeSuffix
+    reverseList
     ;
-in rec {
+in { inherit removeSuffix removePrefix hasPrefix hasSuffix replaceStrings; } // rec {
 
+  # uniqBy' :: (Elem -> String) -> [Any] -> [Any]
+  uniqBy = fn: arr:
+    foldl' (acc: e: if any (x: fn x == fn e) acc then
+      acc
+    else acc ++ [ e ]) [] arr;
+
+  # uniqLastBy' :: (Elem -> String) -> [Any] -> [Any]
+  uniqLastBy = fn: arr: let
+    rev = reverseList arr;
+  in reverseList (uniqBy fn rev);
+
+  # firstChar :: String -> String
   firstChar = str:
     head (filter (x: x != "") (flatten (split "(.)" str)));
   
   # get attr by array e.g getAttr' [ "kamu" "asu" ] { kamu = { asu = 8; dia = 10; }; lalu = true; } => 8
-  getAttr' = key: obj:
+  getAttr' = lib.warn "deprecreated fmway.getAttr', use lib.getAttrFromPath instead" (key: obj:
     if isList key && length key < 1 then
       obj
     else if isString key then
       obj.${key}
     else let
       res = getAttr' (head key) obj;
-    in getAttr' (tail key) res;
-
+    in getAttr' (tail key) res);
+  
+  # readEnv :: Path -> {String}
   readEnv = file: let
     parseEnv = str: let
       res = split "^([^# ][^= ]+)=(.*)$" str;
@@ -54,20 +68,24 @@ in rec {
     value = elemAt curr 1;
   }) list); # Just to parse .env file to mapAttrs;
 
+  # replaceStrings' :: AttrSet -> AttrSet -> String -> String
   replaceStrings' = var: { start ? "%(", end ? ")s" } @ prefix: str: let # %(var)s 
     names = attrNames var;
     from = map (x: "${start}${x}${end}") names; 
     to   = map (x: "${toString var.${x}}") names;
   in replaceStrings from to str;
 
+  # basename :: String -> String
   basename = k: let
     bs = baseNameOf k;
     matched = match "^(.*)\\.(.*)$" bs;
   in if matched == null then bs else head matched;
 
+  # getFilename :: (Path | String) -> String
   getFilename = path:
     baseNameOf (toString path);
 
+  # hasFilename :: String -> (String | Path) -> Bool
   hasFilename = filename: target:
     if isList filename then
       let
@@ -79,6 +97,7 @@ in rec {
       target-filename = getFilename target;
     in filename == target-filename;
 
+  # hasSuffix' :: (String | [String]) -> (Path | String) -> Bool
   hasSuffix' = suffix: target:
   if isList suffix then
     let
@@ -90,10 +109,12 @@ in rec {
     targetStr = toString target;
   in hasSuffix suffix targetStr;
 
+  # hasExtension :: (String | [String]) -> (Path | String) -> Bool
   hasExtension = ext: target: let
     exts = if isString ext then ext else map (x: ".${x}") ext;
   in hasSuffix' exts target;
   
+  # hasPrefix' :: (String | [String]) -> (Path | String) -> Bool
   hasPrefix' = prefix: target:
   if isList prefix then
     let
@@ -105,6 +126,7 @@ in rec {
     targetStr = toString target;
   in hasPrefix prefix targetStr;
 
+  # hasRegex :: (String | [String]) -> (Path | String) -> Bool
   hasRegex = regex: target:
   if isList regex then
     let
@@ -115,6 +137,7 @@ in rec {
     matched = match regex targetStr;
   in if isNull matched then false else true;
 
+  # removePrefix' :: (String | [String]) -> (Path | String) -> String
   removePrefix' = prefix: target:
   if isList prefix then
     let
@@ -126,6 +149,7 @@ in rec {
     targetStr = toString target;
   in removePrefix prefix targetStr;
 
+  # removeSuffix' :: (String | [String]) -> (Path | String) -> String
   removeSuffix' = suffix: target:
   if isList suffix then
     let
@@ -137,6 +161,7 @@ in rec {
     targetStr = toString target;
   in removeSuffix suffix targetStr;
 
+  # removeExtension :: (String | [String]) -> (Path | String) -> String
   removeExtension = ext: target: let
     exts =
       if isString ext then
@@ -145,29 +170,34 @@ in rec {
         map (x: ".${x}") ext;
   in removeSuffix' exts target;
 
+  # stringMultiply :: String -> int -> String
   stringMultiply = str: count:
     foldl' (acc: _: str + acc) "" (genList (x: x) count);
 
+  # excludeList :: [Any] -> [Any] -> [Any]
   excludeList = excludes: inputs: let
     fixed = map (x: toString x) excludes;
     filtering = x: ! any (y: x == y) fixed;
   in filter filtering inputs;
 
-  excludeAttr = excludes: inputs:
-    removeAttrs inputs excludes;
+  # excludeAttr :: [Any] -> AttrSet -> AttrSet
+  excludeAttr = lib.flip removeAttrs;
 
+  # excludeItems :: [Any] -> (AttrSet -> AttrSet | [Any] -> [Any])
   excludeItems = excludes: inputs:
   if isList inputs then
     excludeList excludes inputs
   else if isAttrs inputs then
     excludeAttr excludes inputs
-  else throw "Exclude items only support list and attrs :(";
+  else throw "Exclude items only support list and AttrSet :(";
 
+  # excludePrefix :: [String] -> (String | [String]) -> [String]
   excludePrefix = excludes: prefixs: let
     fixed = map (x: toString x) excludes;
     filtering = x: ! any (y: hasPrefix' y x) fixed;
   in filter filtering prefixs;
 
+  # excludeSuffix :: [String] -> (String | [String]) -> [String]
   excludeSuffix = excludes: suffixs: let
     fixed = map (x: toString x) excludes;
     filtering = x: ! any (y: hasSuffix' y x) fixed;
