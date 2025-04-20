@@ -17,6 +17,7 @@
     take
     last
     optionals
+    getAttrFromPath
   ;
 
   inherit (root)
@@ -28,7 +29,6 @@
     excludePrefix
     removePrefix'
     removeExtension
-    getAttr'
   ;
 
   getAlias = alias: path: let
@@ -48,7 +48,7 @@
         if ! isNull matcher then
           matcher.read self ({
             inherit root super;
-            self = getAttr' get root;
+            self = getAttrFromPath get root;
           } // variables)
         else throw "error boss";
     in if isNull aliased then res else aliased res
@@ -57,7 +57,7 @@
   else let
     var = allFunc // variables // (
       if self ? ".var" then
-        toImport self.".var" (getAttr' get root) root includes variables alias (get ++ [".var"])
+        toImport self.".var" (getAttrFromPath get root) root includes variables alias (get ++ [".var"])
       else {}
     );
     ali = (
@@ -70,7 +70,7 @@
       val = obj.${name};
       isDefault = name == "default" && isPath val;
       gett = if isDefault then get else get ++ [name];
-      sup = if isDefault then super else getAttr' get root;
+      sup = if isDefault then super else getAttrFromPath get root;
       res = toImport val ({ inherit super; } // sup) root includes var ali gett;
     in recursiveUpdate acc (if isDefault then res else { "${name}" = res; })) {} (attrNames obj);
   in result;
