@@ -191,4 +191,24 @@ in { inherit removeSuffix removePrefix hasPrefix hasSuffix replaceStrings; } // 
     fixed = map (x: toString x) excludes;
     filtering = x: ! any (y: hasSuffix' y x) fixed;
   in filter filtering suffixs;
+
+  printPathv1 = config: x: let
+    user = config.users.users.${x};
+    home-manager = config.home-manager.users.${x};
+    toString = arr: builtins.concatStringsSep ":" arr;
+  in toString (
+    # home-manager level
+    home-manager.home.sessionPath ++ [ 
+      "${user.home}/.local/share/flatpak/exports" # flatpak
+      "/var/lib/flatpak/exports" # flatpak
+      "${user.home}/.nix-profile/bin" # profile level
+      "/etc/profiles/per-user/${user.name}/bin" # user level
+      "/run/current-system/sw/bin" # system level
+    ]);
+  printPathv2 = config: user:
+    lib.makeBinPath (
+       config.environment.systemPackages # system packages
+    ++ config.users.users.${user}.packages # user packages
+    ++ lib.optionals (config ? home-manager && config.home-manager.users ? ${user}) config.home-manager.users.${user}.home.packages # home-manager packages
+    );
 }
