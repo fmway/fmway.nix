@@ -13,7 +13,6 @@
     isString
     genList
     removeAttrs
-    tail
     elemAt
     split
     ;
@@ -44,16 +43,6 @@ in { inherit removeSuffix removePrefix hasPrefix hasSuffix replaceStrings; } // 
   # firstChar :: String -> String
   firstChar = str:
     head (filter (x: x != "") (flatten (split "(.)" str)));
-  
-  # get attr by array e.g getAttr' [ "kamu" "asu" ] { kamu = { asu = 8; dia = 10; }; lalu = true; } => 8
-  getAttr' = lib.warn "deprecreated fmway.getAttr', use lib.getAttrFromPath instead" (key: obj:
-    if isList key && length key < 1 then
-      obj
-    else if isString key then
-      obj.${key}
-    else let
-      res = getAttr' (head key) obj;
-    in getAttr' (tail key) res);
   
   # readEnv :: Path -> {String}
   readEnv = file: let
