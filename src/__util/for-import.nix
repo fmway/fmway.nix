@@ -22,15 +22,17 @@
         else throw "(getRequiredArgs) argument ${name} not found :(";
     }) argNames);
   in result;
-  withImports = { ... } @ vars: arr: map (lib.flip withImport vars) (lib.flatten [arr]);
+  withImports = { ... } @ vars: arr: map (lib.flip (withImport' true) vars) (lib.flatten [arr]);
 
-  withImport = x: { ... } @ vars: let
+  withImport = withImport' false;
+
+  withImport' = exposePath: x: { ... } @ vars: let
     impor = x: path:
       if lib.isFunction x && (lib.functionArgs x) ? internal then
         x ({ internal = true; } // vars)
-      else if isNull path then
-        x
-      else path;
+      else if exposePath && ! isNull path then
+        path
+      else x;
   in if (lib.isString x || lib.isPath x) && lib.pathExists x then
       impor (import x) x
     else
