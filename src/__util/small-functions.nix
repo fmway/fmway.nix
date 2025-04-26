@@ -211,4 +211,13 @@ in { inherit removeSuffix removePrefix hasPrefix hasSuffix replaceStrings; } // 
     ++ config.users.users.${user}.packages # user packages
     ++ lib.optionals (config ? home-manager && config.home-manager.users ? ${user}) config.home-manager.users.${user}.home.packages # home-manager packages
     );
+
+  toCamelCase = str: let
+    match = builtins.match "^(.*)[-_](.)(.*)$" str;
+    cameled = lib.imap1 (i: v: if i == 2 then
+      lib.toUpper v
+    else v) match;
+  in if isNull match then
+    str
+  else toCamelCase (lib.concatStrings cameled);
 }
