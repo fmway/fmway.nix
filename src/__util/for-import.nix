@@ -22,10 +22,25 @@
         else throw "(getRequiredArgs) argument ${name} not found :(";
     }) argNames);
   in result;
+  withImports = { ... } @ vars: arr: map (lib.flip withImport vars) (lib.flatten [arr]);
+
+  withImport = x: { ... } @ vars: let
+    impor = x: path:
+      if lib.isFunction x && (lib.functionArgs x) ? internal then
+        x ({ internal = true; } // vars)
+      else if isNull path then
+        x
+      else path;
+  in if (lib.isString x || lib.isPath x) && lib.pathExists x then
+      impor (import x) x
+    else
+      impor x null;
 in {
   doImport = path: variables: let
     imported = import path;
   in if isFunction imported && !isNull variables then
     imported (getRequiredArgs imported variables)
   else imported;
+
+  inherit withImport withImports;
 }
