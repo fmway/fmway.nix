@@ -18,7 +18,7 @@
               path = "${moduleDir}/${x}/${y}";
             in {
               name = lib.removeSuffix ".nix" y;
-              value = root.withImport path args;
+              value = root.withImport' path args;
             }))
             (lib.listToAttrs)
           ];

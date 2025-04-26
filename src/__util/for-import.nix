@@ -45,4 +45,5 @@ in {
   else imported;
 
   inherit withImport withImports;
+  withImport' = withImport' true;
 }
