@@ -3,7 +3,6 @@
 
   inputs = {
     nixpkgs.url = "github:nix-community/nixpkgs.lib";
-    flake-parts.url = "github:hercules-ci/flake-parts";
     flake-compat.url = "github:edolstra/flake-compat";
     flake-compat.flake = false;
     infuse-nix.url = "git+https://codeberg.org/amjoseph/infuse.nix";
