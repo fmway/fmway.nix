@@ -12,7 +12,13 @@
         value = let
           res = args: lib.pipe "${moduleDir}/${x}" [
             (builtins.readDir)
-            (lib.filterAttrs (n: t: ! isNull (builtins.match ".+[.]nix" n) && t == "regular"))
+            (lib.filterAttrs (n: t:
+              (! isNull (builtins.match ".+[.]nix" n) && t == "regular") ||
+              (
+                t == "directory" &&
+                lib.pathIsRegularFile "${moduleDir}/${x}/${n}/default.nix"
+              )
+            ))
             (lib.attrNames)
             (map (y: let
               path = "${moduleDir}/${x}/${y}";
