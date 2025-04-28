@@ -112,7 +112,12 @@
       in if last res == "default.nix" then take (length res - 1) res else res;
     in length splitted >= depth) filteredByMax;
     
-    filteredByExcludes = excludePrefix excludes filteredByDepth;
+    filteredByExcludes = filter (x: ! lib.any (y: let path = toString y; in
+      if isNull (lib.match "^/.*" path) then
+        (hasPrefix' path x)
+      else
+        ("${folder}/${x}" == path)
+    ) excludes) filteredByDepth;
 
     filteredByIncludes = filter (path: let
       filtered = filter (match:

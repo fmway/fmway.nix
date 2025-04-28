@@ -10,6 +10,9 @@
   ;
   inherit (lib)
     recursiveUpdate
+    hasPrefix
+    filter
+    any
   ;
 
   inherit (root)
@@ -22,7 +25,15 @@
   ;
 
    templateSingleImport = { folder, variables, list, excludes, initial }: let
-    filtered = if length excludes == 0 then list else excludeItems excludes list;
+    filtered =
+      if length excludes == 0 then
+        list
+      else filter (x: any (y: let path = toString y; in
+      if isNull (lib.match "^/.*" path) then
+        (hasPrefix path x)
+      else
+        ("${folder}/${x}" == path)
+    ) excludes) list;
   in foldl' (acc: curr: let
     var =
       if isNull variables then
