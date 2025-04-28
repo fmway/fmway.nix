@@ -75,7 +75,7 @@
     in recursiveUpdate acc (if isDefault then res else { "${name}" = res; })) {} (attrNames obj);
   in result;
 
-  treeImport' = { folder, variables ? {}, depth ? 1, max ? 0, excludes ? [], includes ? [] }: let
+  treeImport' = { enable ? true, folder, variables ? {}, depth ? 1, max ? 0, excludes ? [], includes ? [] }: let
     includess = includes ++
       optionals (all (x: x._type != "matcher-by-nix") includes) [ matchers.nix ];
     # ext = [ "nix" ] ++ (getExt includes);
@@ -131,7 +131,7 @@
     in recursiveUpdate acc (toObj splitted path)) {} filteredByIncludes;
     result = toImport res null result includess variables [] [];
   # in toImport res null res variables [];
-  in result;
+  in if enable then result else {};
 
   treeImport = obj: if isPath obj then
     treeImport { folder = obj; }
