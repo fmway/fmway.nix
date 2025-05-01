@@ -40,7 +40,10 @@
         sugarify = { ... } @ sugars': mkFn (fmway.uniqLastBy (x: x.name) (sugars ++ lib.attrsToList sugars'));
       };
     in mkFn defaultInfuse.v1.default-sugars;
-    overlay = self: super: { inherit fmway infuse; };
+    overlay = self: super: {
+      inherit fmway infuse;
+      inherit (fmway) mkFlake;
+    };
     finalLib = lib.extend overlay;
     sharedModules = isHM: map (x: { _file = x; imports = [ (import x isHM) ]; }) (fmway.genTreeImports ./modules/_shared);
     hmModules = fmway.genTreeImports ./modules/home-manager;
