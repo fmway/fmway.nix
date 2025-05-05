@@ -1,7 +1,7 @@
 { lib, root, ... }:
 {
   genModules = moduleDir: args: let
-    shareds = [ "nixosModules" "darwinModules" "homeManagerModules" ];
+    shareds = [ "nixosModules" "nixDarwinModules" "homeManagerModules" ];
     re = lib.pipe moduleDir [
       builtins.readDir
       (lib.filterAttrs (_: v: v == "directory"))
