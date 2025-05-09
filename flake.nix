@@ -71,6 +71,10 @@
       path = ./templates/devenv;
       description = "simple devenv";
     };
+    templates.flake = {
+      path = ./templates/flake;
+      description = "flake-parts + fmway.nix";
+    };
     overlays.default = overlay;
   };
 }
