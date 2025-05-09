@@ -222,4 +222,11 @@ in { inherit removeSuffix removePrefix hasPrefix hasSuffix replaceStrings; } // 
   in if isNull match then
     str
   else toCamelCase (lib.concatStrings cameled);
+
+  addIndent = indent: str:
+    lib.concatStringsSep "\n" (
+      map (x:
+        lib.optionalString (lib.trim x != "") indent + x
+      ) (lib.splitString "\n" str)
+    );
 }
