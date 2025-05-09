@@ -31,7 +31,9 @@ in {
     };
   in arg2: flake-parts.lib.mkFlake arg1 ({ lib, ... }: {
     debug = lib.mkDefault true;
-    imports = [
+    imports = lib.optionals (inputs ? systems) [
+      { systems = lib.mkDefault (import inputs.systems); }
+    ] ++ [
       arg2
       selfInputs.self.flakeModules.nixpkgs
       {
