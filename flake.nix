@@ -75,6 +75,10 @@
       path = ./templates/flake;
       description = "flake-parts + fmway.nix";
     };
+    templates.typst = {
+      path = ./templates/typst;
+      description = "flake-parts + fmway.nix + typix";
+    };
     overlays.default = overlay;
   };
 }
