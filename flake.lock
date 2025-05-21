@@ -47,11 +47,24 @@
         "type": "github"
       }
     },
+    "read-tree": {
+      "flake": false,
+      "locked": {
+        "narHash": "sha256-ck7TY8bBNft80Qz8oldx+1LSVytTG9y7SLV9vT18eAo=",
+        "type": "file",
+        "url": "https://code.tvl.fyi/plain/nix/readTree/default.nix"
+      },
+      "original": {
+        "type": "file",
+        "url": "https://code.tvl.fyi/plain/nix/readTree/default.nix"
+      }
+    },
     "root": {
       "inputs": {
         "flake-compat": "flake-compat",
         "infuse-nix": "infuse-nix",
-        "nixpkgs": "nixpkgs"
+        "nixpkgs": "nixpkgs",
+        "read-tree": "read-tree"
       }
     }
   },

@@ -7,12 +7,15 @@
     flake-compat.flake = false;
     infuse-nix.url = "git+https://codeberg.org/amjoseph/infuse.nix";
     infuse-nix.flake = false;
+    read-tree.url = "https://code.tvl.fyi/plain/nix/readTree/default.nix";
+    read-tree.flake = false;
     # TODO
     # nix-parsec.url = "github:nprindle/nix-parsec";
   };
 
   outputs = { self, nixpkgs, ... } @ inputs: let
     inherit (nixpkgs) lib;
+    readTree = import inputs.read-tree {};
     fmway = let
       treeImport = import ./src/treeImport.nix rec {
         inherit lib;
@@ -41,7 +44,7 @@
       };
     in mkFn defaultInfuse.v1.default-sugars;
     overlay = self: super: {
-      inherit fmway infuse;
+      inherit fmway infuse readTree;
       inherit (fmway) mkFlake;
     };
     finalLib = lib.extend overlay;
@@ -57,7 +60,7 @@
       value = import "${./modules/devenv}/${path}" { lib = finalLib; inherit inputs; };
     }) (fmway.getNixs ./modules/devenv));
   in {
-    inherit fmway flakeModules devenvModules infuse;
+    inherit fmway flakeModules devenvModules infuse readTree;
     homeManagerModules.default = self.homeManagerModules.fmway // {
       nixpkgs.overlays = [ (_: _: { lib = finalLib; }) ];
     };
