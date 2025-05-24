@@ -26,8 +26,19 @@
     removePrefix
     removeSuffix
     reverseList
+    imap1
     ;
-in { inherit removeSuffix removePrefix hasPrefix hasSuffix replaceStrings; } // rec {
+  addIndent = with-first: indent: str:
+    lib.concatStringsSep "\n" (
+      imap1 (i: x:
+        lib.optionalString ((i != 1 || with-first) && lib.trim x != "") indent + x
+      ) (lib.splitString "\n" str)
+    );
+in {
+  inherit removeSuffix removePrefix hasPrefix hasSuffix replaceStrings;
+  addIndent = addIndent true;
+  addIndent'= addIndent false;
+} // rec {
 
   # uniqBy' :: (Elem -> String) -> [Any] -> [Any]
   uniqBy = fn: arr:
@@ -216,17 +227,10 @@ in { inherit removeSuffix removePrefix hasPrefix hasSuffix replaceStrings; } // 
 
   toCamelCase = str: let
     match = builtins.match "^(.*)[-_](.)(.*)$" str;
-    cameled = lib.imap1 (i: v: if i == 2 then
+    cameled = imap1 (i: v: if i == 2 then
       lib.toUpper v
     else v) match;
   in if isNull match then
     str
   else toCamelCase (lib.concatStrings cameled);
-
-  addIndent = indent: str:
-    lib.concatStringsSep "\n" (
-      map (x:
-        lib.optionalString (lib.trim x != "") indent + x
-      ) (lib.splitString "\n" str)
-    );
 }
