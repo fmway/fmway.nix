@@ -24,7 +24,7 @@
             (lib.attrNames)
             (map (name: let
               _file = let
-                path = "${modulesPath}/${dir}/${name}";
+                path = /. + "${modulesPath}/${dir}/${name}";
               in path + lib.optionalString (lib.pathIsDirectory path) "/default.nix";
               module = lib.removeSuffix ".nix" name;
             in {
