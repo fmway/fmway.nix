@@ -1,6 +1,7 @@
 { lib, root, ... }:
 {
-  genModules = modulesPath: args: let
+  genModules = moduleDir: args: let
+    modulesPath = builtins.toPath moduleDir;
     shareds = [ "nixosModules" "nixDarwinModules" "homeManagerModules" ];
     re = lib.pipe modulesPath [
       builtins.readDir
@@ -22,16 +23,15 @@
             ))
             (lib.attrNames)
             (map (name: let
-              path = "${modulesPath}/${dir}/${name}";
+              _file = let
+                path = "${modulesPath}/${dir}/${name}";
+              in path + lib.optionalString (lib.pathIsDirectory path) "/default.nix";
               module = lib.removeSuffix ".nix" name;
             in {
               name = module;
-              value = root.withImport' path (lib.optionalAttrs (scope != "SharedModules") {
+              value = root.withImport' _file (lib.optionalAttrs (scope != "SharedModules") {
                 allModules = map (x: final.${scope}.${x}) (lib.filter (x: x != module) (lib.attrNames final.${scope}));
-              } // {
-                _file = "${modulesPath}/${dir}/${name}"
-                      + lib.optionalString (lib.pathIsDirectory path) "/default.nix";
-              } // args);
+              } // { inherit _file; } // args);
             }))
             (lib.listToAttrs)
           ];
@@ -45,8 +45,8 @@
       inherit name;
       value = re.SharedModules (final // args // { inherit name; }) // (re.${name} or {});
     }) shareds);
-    final = removeAttrs re [ "SharedModules" ] // lib.optionalAttrs (re ? SharedModules) gen;
-  in final // {
-    inherit modulesPath;
-  };
+    final = removeAttrs re [ "SharedModules" ] // lib.optionalAttrs (re ? SharedModules) gen // {
+      inherit modulesPath;
+    };
+  in final;
 }
