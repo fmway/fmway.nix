@@ -29,9 +29,8 @@
               value = root.withImport' path (lib.optionalAttrs (scope != "SharedModules") {
                 allModules = map (x: final.${scope}.${x}) (lib.filter (x: x != module) (lib.attrNames final.${scope}));
               } // {
-                toFile = root:
-                  "${root}/${dir}/${name}"
-                + lib.optionalString (lib.pathIsDirectory path) "/default.nix";
+                _file = "${moduleDir}/${dir}/${name}"
+                      + lib.optionalString (lib.pathIsDirectory path) "/default.nix";
               } // args);
             }))
             (lib.listToAttrs)
