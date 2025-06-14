@@ -1,8 +1,7 @@
 { lib, root, ... }:
 {
-  genModules = moduleDir: args: let
+  genModules' = shareds: moduleDir: args: let
     modulesPath = builtins.toPath moduleDir;
-    shareds = [ "nixosModules" "nixDarwinModules" "homeManagerModules" ];
     re = lib.pipe modulesPath [
       builtins.readDir
       (lib.filterAttrs (_: v: v == "directory"))
@@ -21,17 +20,26 @@
                 lib.pathIsRegularFile "${modulesPath}/${dir}/${name}/default.nix"
               )
             ))
-            (lib.attrNames)
+            (x: lib.attrNames x ++ [ "defaultWithout" ])
             (map (name: let
+              ctx = if name != "defaultWithout" then name else "default.nix";
               _file = let
-                path = /. + "${modulesPath}/${dir}/${name}";
+                path = /. + "${modulesPath}/${dir}/${ctx}";
               in path + lib.optionalString (lib.pathIsDirectory path) "/default.nix";
-              module = lib.removeSuffix ".nix" name;
+              module = lib.removeSuffix ".nix" ctx;
             in {
-              name = module;
-              value = root.withImport' _file (lib.optionalAttrs (scope != "SharedModules") {
-                allModules = map (x: final.${scope}.${x}) (lib.filter (x: x != module) (lib.attrNames final.${scope}));
-              } // { inherit _file; } // args);
+              name = if name == "defaultWithout" then name else module;
+              value = let
+                r = exc: root.withImport' _file (lib.optionalAttrs (scope != "SharedModules") {
+                  allModules = map (x: final.${scope}.${x}) (
+                    lib.filter (x:
+                      x != module &&
+                      x != "defaultWithout" &&
+                      x != "default" &&
+                      (exc == [] || lib.all (y: x != y) exc)
+                    ) (lib.attrNames final.${scope}));
+                } // { inherit _file; } // args);
+              in if name == "defaultWithout" then r else r [];
             }))
             (lib.listToAttrs)
           ];
@@ -49,4 +57,6 @@
       inherit modulesPath;
     };
   in final;
+
+  genModules = root.genModules' [ "nixosModules" "nixDarwinModules" "homeManagerModules" ];
 }
