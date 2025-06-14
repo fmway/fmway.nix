@@ -1,17 +1,5 @@
 { internal, _file, name, ... }:
-{ config
-, lib
-, pkgs
-, modulesPath
-, utils ? {
-  removePackagesByName = packages: packagesToRemove:
-    let
-      namesToRemove = map lib.getName packagesToRemove;
-    in with lib;
-      filter (x: !(elem (getName x) namesToRemove)) packages;
-}
-, ...
-}: let
+{ config , lib , pkgs , modulesPath , utils, ... }: let
   contextModule =
     if name == "homeManagerModules" then
       "home-environment.nix"
@@ -21,6 +9,8 @@
 
   prefix = if name == "homeManagerModules" then "home" else "environment";
   packagePrefix = if name == "homeManagerModules" then "packages" else "systemPackages";
+
+  cfg = config.${prefix};
   
 in {
   inherit _file;
@@ -32,7 +22,7 @@ in {
       in self // {
         type = self.type // {
           merge = loc: defs:
-            utils.removePackagesByName (self.type.merge loc defs) config.home.excludePackages;
+            utils.removePackagesByName (self.type.merge loc defs) cfg.excludePackages;
         };
       };
       excludePackages = lib.mkOption {
@@ -42,5 +32,13 @@ in {
       };
     };
   };
-  inherit (defaultModule) config;
+  config = defaultModule.config // lib.optionalAttrs (name == "homeManagerModules") {
+    _module.args.utils = {
+      removePackagesByName = packages: packagesToRemove:
+    let
+      namesToRemove = map lib.getName packagesToRemove;
+    in with lib;
+      filter (x: !(elem (getName x) namesToRemove)) packages;
+    };
+  };
 }
