@@ -1,4 +1,3 @@
-{ ... }:
 { inputs, config, pkgs, lib, ... }: let
   inherit (cfg) userPath dataPath;
   parseBoardConfig = path:

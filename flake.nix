@@ -48,28 +48,11 @@
       inherit (fmway) mkFlake;
     };
     finalLib = lib.extend overlay;
-    sharedModules = isHM: map (x: { _file = x; imports = [ (import x isHM) ]; }) (fmway.genTreeImports ./modules/_shared);
-    hmModules = fmway.genTreeImports ./modules/home-manager;
-    nixosModules = fmway.genImportsWithDefault ./modules/nixos;
-    flakeModules = builtins.listToAttrs (map (path: {
-      name = fmway.basename path;
-      value = import "${./modules/flake}/${path}" { lib = finalLib; inherit inputs; };
-    }) (fmway.getNixs ./modules/flake));
-    devenvModules = builtins.listToAttrs (map (path: {
-      name = fmway.basename path;
-      value = import "${./modules/devenv}/${path}" { lib = finalLib; inherit inputs; };
-    }) (fmway.getNixs ./modules/devenv));
   in {
-    inherit fmway flakeModules devenvModules infuse readTree;
-    homeManagerModules.default = self.homeManagerModules.fmway // {
-      nixpkgs.overlays = [ (_: _: { lib = finalLib; }) ];
-    };
-    homeManagerModules.fmway.imports = hmModules ++ sharedModules true;
-    nixosModules.default = self.nixosModules.fmway // {
-      nixpkgs.overlays = [ (_: _: { lib = finalLib; }) ];
-    };
-    nixosModules.fmway.imports = nixosModules ++ sharedModules false;
+    inherit fmway infuse readTree;
     lib = finalLib;
+
+    # FIXME auto-import templates
     templates.devenv = {
       path = ./templates/devenv;
       description = "simple devenv";
@@ -83,5 +66,5 @@
       description = "flake-parts + fmway.nix + typix";
     };
     overlays.default = overlay;
-  };
+  } // fmway.genModules' [ "nixosModules" "homeManagerModules" ] ./modules { lib = finalLib; inherit fmway infuse readTree; };
 }

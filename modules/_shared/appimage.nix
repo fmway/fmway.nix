@@ -1,4 +1,4 @@
-isHomeManager:
+{ internal, name, _file, ... }:
 { config, lib, pkgs, ... } @ var: let
   inherit (builtins)
     isNull
@@ -47,7 +47,8 @@ isHomeManager:
 
   cfg = config.programs.appimage;
 in with lib; {
-  options.programs.appimage = lib.optionalAttrs isHomeManager {
+  inherit _file;
+  options.programs.appimage = lib.optionalAttrs (name == "homeManagerModules") {
     enable = mkEnableOption "enable appimage";
   } // {
     packages = mkOption {
@@ -92,7 +93,7 @@ in with lib; {
   };
   config = mkIf cfg.enable (let
     keys =
-      if isHomeManager then
+      if name == "homeManagerModules" then
         [ "home" "packages" ]
       else [ "environment" "systemPackages" ];
   in lib.setAttrByPath keys (map (name: let

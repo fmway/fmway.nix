@@ -1,5 +1,5 @@
 # Adapted from home-manager.
-{ lib, inputs, ... }: let
+{ internal, _file, lib, inputs, ... }: let
   superInputs = inputs;
 in { flake-parts-lib, inputs, ... }: {
   options.perSystem = flake-parts-lib.mkPerSystemOption ({ config, pkgs, system, ... }: let
@@ -129,4 +129,5 @@ in { flake-parts-lib, inputs, ... }: {
       };
     };
   });
+  inherit _file;
 }

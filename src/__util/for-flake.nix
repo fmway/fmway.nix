@@ -20,7 +20,10 @@
                 lib.pathIsRegularFile "${modulesPath}/${dir}/${name}/default.nix"
               )
             ))
-            (x: lib.attrNames x ++ [ "defaultWithout" ])
+            (x: let
+              res = lib.attrNames x;
+            in res
+            ++ lib.optional (lib.any (x: !isNull (lib.match "default([.]nix)?$" x)) res) "defaultWithout")
             (map (name: let
               ctx = if name != "defaultWithout" then name else "default.nix";
               _file = let

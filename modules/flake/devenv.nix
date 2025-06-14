@@ -1,4 +1,4 @@
-{ lib, inputs, ... }: let
+{ internal, _file lib, inputs, ... }: let
   superInputs = inputs;
 in { flake-parts-lib, lib, inputs, ... }: let
   devenv = inputs.devenv or superInputs.devenv;
@@ -27,6 +27,7 @@ in { flake-parts-lib, lib, inputs, ... }: let
       (lib.attrValues replaces)
     default);
 in {
+  inherit _file;
   imports = [
     devenv.flakeModule
   ];
@@ -59,5 +60,4 @@ in {
       })
     ];
   });
-  _file = ./devenv-modules.nix;
 }

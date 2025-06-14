@@ -1,4 +1,3 @@
-{ ... }:
 { config, lib, pkgs, ... }: let
   gitignore = pkgs.writeText "gitignore" ''
     *

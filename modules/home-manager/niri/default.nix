@@ -1,7 +1,4 @@
-{ lib
-, config
-, pkgs
-, ... }: let
+{ lib, config, pkgs, ... }: let
   inherit (lib.fmway)
     stringMultiply
     excludeItems
