@@ -66,5 +66,5 @@
       description = "flake-parts + fmway.nix + typix";
     };
     overlays.default = overlay;
-  } // fmway.genModules' [ "nixosModules" "homeManagerModules" ] ./modules { lib = finalLib; inherit fmway infuse readTree; };
+  } // fmway.genModules' [ "nixosModules" "homeManagerModules" ] ./modules { lib = finalLib; inherit fmway infuse readTree inputs; };
 }

@@ -20,29 +20,23 @@
                 lib.pathIsRegularFile "${modulesPath}/${dir}/${name}/default.nix"
               )
             ))
-            (x: let
-              res = lib.attrNames x;
-            in res
-            ++ lib.optional (lib.any (x: !isNull (lib.match "default([.]nix)?$" x)) res) "defaultWithout")
+            (lib.attrNames)
             (map (name: let
-              ctx = if name != "defaultWithout" then name else "default.nix";
               _file = let
-                path = /. + "${modulesPath}/${dir}/${ctx}";
+                path = /. + "${modulesPath}/${dir}/${name}";
               in path + lib.optionalString (lib.pathIsDirectory path) "/default.nix";
-              module = lib.removeSuffix ".nix" ctx;
+              module = lib.removeSuffix ".nix" name;
             in {
-              name = if name == "defaultWithout" then name else module;
+              name = module;
               value = let
                 r = exc: root.withImport' _file (lib.optionalAttrs (scope != "SharedModules") {
                   allModules = map (x: final.${scope}.${x}) (
                     lib.filter (x:
                       x != module &&
-                      x != "defaultWithout" &&
-                      x != "default" &&
-                      (exc == [] || lib.all (y: x != y) exc)
+                      lib.all (y: x != y) (exc ++ [ "defaultWithout" "default" "all" "allWithout" ])
                     ) (lib.attrNames final.${scope}));
                 } // { inherit _file; } // args);
-              in if name == "defaultWithout" then r else r [];
+              in if module == "default" then r else r [];
             }))
             (lib.listToAttrs)
           ];
@@ -56,9 +50,17 @@
       inherit name;
       value = re.SharedModules (final // args // { inherit name; }) // (re.${name} or {});
     }) shareds);
-    final = removeAttrs re [ "SharedModules" ] // lib.optionalAttrs (re ? SharedModules) gen // {
-      inherit modulesPath;
-    };
+    final = let
+      r = removeAttrs re [ "SharedModules" ] // lib.optionalAttrs (re ? SharedModules) gen // {
+        inherit modulesPath;
+      };
+    in lib.mapAttrs (k: v: v // {
+      allWithout = exc: { imports = map (x: final.${k}.${x}) (lib.filter (x: lib.all (y: x != y) exc) (lib.attrNames v)); };
+      all = final.${k}.allWithout [];
+    } // lib.optionalAttrs (v ? default) {
+      defaultWithout = v.default;
+      default = final.${k}.defaultWithout [];
+    }) r;
   in final;
 
   genModules = root.genModules' [ "nixosModules" "nixDarwinModules" "homeManagerModules" ];
