@@ -233,4 +233,26 @@ in {
   in if isNull match then
     str
   else toCamelCase (lib.concatStrings cameled);
+
+  /*
+    mkResolvePath :: (String | Path) -> String -> (Path | String)
+    functions for resolve path by string, return itself if it doesn't seem like paths (./ , ../ or /). for example:
+    ```nix
+    let
+      resolvePath = mkResolvePath ./.;
+    in resolvePath "./mypath.json" # => ./path.json 
+    ```
+   */
+  mkResolvePath = cwd: str: let
+    matched = builtins.match "^([.]{1,2}/|/)(.+)$" str;
+  in if isNull matched then
+    str
+  else let
+    prefix = lib.head matched;
+    ctx = lib.last matched;
+  in if prefix == "./" then
+    cwd + "/${ctx}"
+  else if prefix == "../" then
+    cwd + "/${ctx}"
+  else /. + "/${ctx}";
 }
