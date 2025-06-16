@@ -17,20 +17,20 @@
     inherit (nixpkgs) lib;
     readTree = import inputs.read-tree {};
     fmway = let
-      treeImport = import ./src/treeImport.nix rec {
+      treeImport = import ./lib/fmway/treeImport.nix rec {
         inherit lib;
         root = let
           var = { inherit lib root; };
-          small = import ./src/__util/small-functions.nix var;
-          for-import = import ./src/__util/for-import.nix var;
-          tree-path = import ./src/tree-path.nix var;
-          matchers = import ./src/matchers.nix var;
+          small = import ./lib/fmway/__util/small-functions.nix var;
+          for-import = import ./lib/fmway/__util/for-import.nix var;
+          tree-path = import ./lib/fmway/tree-path.nix var;
+          matchers = import ./lib/fmway/matchers.nix var;
         in small // for-import // {
           inherit tree-path matchers;
         };
       };
       result = treeImport {
-        folder = ./src;
+        folder = ./lib/fmway;
         variables = { inherit lib inputs; };
         depth = 0;
       };
