@@ -29,11 +29,12 @@
           inherit tree-path matchers;
         };
       };
-    in treeImport {
-      folder = ./src;
-      variables = { inherit lib inputs; };
-      depth = 0;
-    };
+      result = treeImport {
+        folder = ./src;
+        variables = { inherit lib inputs; };
+        depth = 0;
+      };
+    in result // result.parser;
     infuse = let
       fn = import inputs.infuse-nix;
       defaultInfuse = fn { inherit lib; };
