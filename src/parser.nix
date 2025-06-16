@@ -28,7 +28,7 @@
       builtins.scopedImport variables (builtins.toFile "mkParse-expr.nix" ctx)
     else lib.getAttrFromPath (lib.splitString "." ctx) variables;
     post= lib.elemAt matches 2;
-  in self pre + (if lib.isString rest then rest else builtins.toJSON rest) + self post;
+  in self pre + (if lib.isStringLike rest then rest else builtins.toJSON rest) + self post;
 in {
   inherit fromJSON fromTOML;
   fromYAML = yaml: self.readYAML (builtins.toFile "file.yaml" yaml);
