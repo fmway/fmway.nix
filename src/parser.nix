@@ -1,4 +1,4 @@
-{ lib, ... }: let
+{ lib, self, ... }: let
   inherit (lib)
     fileContents
   ;
@@ -13,14 +13,26 @@
     fromTOML
   ;
   # FIXME
-  listNeedFixed = [ "$" "{" "}" "." "(" ")" ];
+  listNeedFixed = [ "$" "{" "}" "." "(" ")" "[" ];
 
   fixedInMatch = str:
     lib.foldl' (acc: curr: acc + (if lib.any (x: curr == x) listNeedFixed then "[${curr}]" else curr)) "" (lib.splitString "" str);
-in rec {
+
+  mkParse = experimental: { prefix ? "{{", postfix ? "}}", ... } @ variables: str: let
+    matches = lib.match "^(.*)${fixedInMatch prefix}(.+)${fixedInMatch postfix}(.*)$" str;
+    self = mkParse experimental (variables // { inherit prefix postfix;});
+  in if isNull matches then str else let
+    pre = lib.elemAt matches 0;
+    ctx = lib.trim (lib.elemAt matches 1);
+    rest= if experimental then
+      builtins.scopedImport variables (builtins.toFile "mkParse-expr.nix" ctx)
+    else lib.getAttrFromPath (lib.splitString "." ctx) variables;
+    post= lib.elemAt matches 2;
+  in self pre + (if lib.isString rest then rest else builtins.toJSON rest) + self post;
+in {
   inherit fromJSON fromTOML;
-  fromYAML = yaml: readYAML (builtins.toFile "file.yaml" yaml);
-  fromJSONC = jsonc: readJSONC (builtins.toFile "file.jsonc" jsonc);
+  fromYAML = yaml: self.readYAML (builtins.toFile "file.yaml" yaml);
+  fromJSONC = jsonc: self.readJSONC (builtins.toFile "file.jsonc" jsonc);
 
   readYAML = FILE: throw "readYAML not available for now"
     # fromJSON (
@@ -70,13 +82,7 @@ in rec {
     in parse "this is \${{ myvar }} and \${{ the.value.is }}" # => "this is work and work"
     ```
    */
-  # FIXME handle function will be great
-  mkParse = { prefix ? "{{", postfix ? "}}", ... } @ variables: str: let
-    matches = lib.match "^(.*)${fixedInMatch prefix}(.+)${fixedInMatch postfix}(.*)$" str;
-    self = mkParse (variables // { inherit prefix postfix;});
-  in if isNull matches then str else let
-    pre = lib.elemAt matches 0;
-    rest= lib.getAttrFromPath (lib.splitString "." (lib.trim (lib.elemAt matches 1))) variables;
-    post= lib.elemAt matches 2;
-  in self pre + toString (if lib.isBool rest then builtins.toJSON rest else rest) + self post;
+  mkParse = mkParse false;
+  # mkParse with all functionality in nix (like math operation)
+  mkParse'= mkParse true;
 }
