@@ -3,30 +3,27 @@
   readTree = import inputs.read-tree {};
   fmway = let
     var = { inherit lib root; };
-    root = let
-      small = import ./lib/fmway/__util/small-functions.nix var;
-      for-import = import ./lib/fmway/__util/for-import.nix var;
-      tree-path = import ./lib/fmway/tree-path.nix var;
-      matchers = import ./lib/fmway/matchers.nix var;
-    in small // for-import // {
+    small = import ./lib/fmway/__util/small-functions.nix var;
+    for-import = import ./lib/fmway/__util/for-import.nix var;
+    tree-path = import ./lib/fmway/tree-path.nix var;
+    matchers = import ./lib/fmway/matchers.nix var;
+    root = small // for-import // {
       inherit tree-path matchers;
     };
-    treeImport = import ./lib/fmway/treeImport.nix var;
-    result = treeImport {
+    result = import ./lib/fmway/treeImport.nix var {
       folder = ./lib/fmway;
       variables = { inherit lib inputs; };
       depth = 0;
     };
   in result // result.parser;
-  infuse = let
-    fn = import inputs.infuse-nix;
-    defaultInfuse = fn { inherit lib; };
-    mkFn = sugars: {
-      _sugars = sugars;
-      __functor = self': (fn { inherit lib; sugars = self'._sugars; }).v1.infuse;
-      sugarify = { ... } @ sugars': mkFn (fmway.uniqLastBy (x: x.name) (sugars ++ lib.attrsToList sugars'));
-    };
-  in mkFn defaultInfuse.v1.default-sugars;
+  prevInfuse = import inputs.infuse-nix;
+  defaultInfuse = prevInfuse { inherit lib; };
+  mkInfuse = sugars: {
+    _sugars = sugars;
+    __functor = self': (prevInfuse { inherit lib; sugars = self'._sugars; }).v1.infuse;
+    sugarify = { ... } @ sugars': mkInfuse (fmway.uniqLastBy (x: x.name) (sugars ++ lib.attrsToList sugars'));
+  };
+  infuse = mkInfuse defaultInfuse.v1.default-sugars;
   overlay = self: super: {
     inherit fmway infuse readTree mapListToAttrs;
     inherit (fmway) mkFlake;
