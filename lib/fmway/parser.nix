@@ -53,27 +53,28 @@
   in lib.warnIf _debug "(mkParse) found: ${prefix}${ctx.pre'}${postfix}" res;
 
   fix = arr: var: let
-    text = (lib.foldl' (acc: curr: let
+    res = lib.foldl' (acc: curr: let
       key = curr._key or "expr-${toString acc.idx}";
       res = if lib.isString curr then curr
         else if curr ? _let then ""
         else obj.${key};
     in {
       idx = if lib.isString curr || curr ? _key || curr ? _let then acc.idx else acc.idx + 1;
-      str = acc.str + (if lib.isStringLike res then res else builtins.toJSON res);
-    }) { idx = 0; str = ""; } arr).str;
-    exprs = lib.filter (x: lib.isAttrs x && x ? _expr) arr;
-    lets = lib.filter (x: lib.isAttrs x && x ? _let) arr;
-    res = "let self = {\n" + (lib.foldl' (acc: curr: let
-      key = curr._key or "expr-${toString acc.idx}";
-    in {
-      idx = if curr ? _key then acc.idx else acc.idx + 1;
-      str = acc.str + root.addIndent "  " "${key} = ${curr._expr};\n";
-    }) { idx = 0; str = ""; } exprs).str + "}; ${lib.concatStrings (map (x: x._let) lets)} in self";
-    expr = builtins.toFile "mkParse-expr.nix" res;
-    obj = builtins.scopedImport var expr;
+      _let= acc._let + lib.optionalString (curr ? _let) "${curr._let}\n";
+      ctx = acc.ctx + lib.optionalString (curr ? _expr) (root.addIndent "  " "${key} = ${curr._expr};\n");
+      gen = acc.gen + (if lib.isStringLike res then res else builtins.toJSON res);
+    }) { idx = 0; _let = ""; ctx = ""; gen = ""; } arr;
+
+    expr = builtins.toFile "mkParse-expr.nix" ''
+      var: with var;
+      let self = {
+      ${res.ctx}};
+      ${res._let}in self
+    '';
+    obj = import expr var;
   in {
-    inherit text expr;
+    inherit expr;
+    text = res.gen;
   };
 
   toExpr = str: let
