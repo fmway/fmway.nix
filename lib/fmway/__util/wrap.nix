@@ -42,6 +42,27 @@ in {
             (self: super: {
               lib = overlay super.lib overlay-lib;
             })
+            # wrap mkShell to handle lorri shellHook problems
+            (self: super: {
+              mkShell = rec {
+                override = { ... } @ a: { shellHook ? "", ... } @ v: let
+                  args = removeAttrs v [ "shellHook" ] // lib.optionalAttrs (shellHook != "") {
+                    shellHook = ''
+                      # if not inside lorri env
+                      if [[ "$0" =~ bash$ ]]; then
+                        . "${shellHook'}"
+                      else
+                        cat "${shellHook'}"
+                      fi
+                    '';
+                  };
+                  shellHook' = self.writeScript "shellHook.sh" shellHook;
+                in super.mkShell.override a args;
+                inherit (super.mkShell) __functionArgs;
+                __functor = s: override {};
+              };
+              mkShellNoCC = self.mkShell.override { stdenv = self.stdenvNoCC; };
+            })
           ];
         };
       }
