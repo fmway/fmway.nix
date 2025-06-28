@@ -1,7 +1,7 @@
 { root, inputs, ... }: let
   selfInputs = inputs;
 in {
-  mkFlake = { inputs, ... } @ v1: let
+  mkFlake = { inputs, strict-packages ? true, ... } @ v1: let
     inherit (inputs) flake-parts;
     inherit (inputs.nixpkgs or selfInputs.nixpkgs) lib;
     overlay = lib: x:
@@ -24,7 +24,7 @@ in {
         flake-parts = flake-parts.lib;
       }
     ] ++ lib.flatten [ default ];
-    arg1 = v1 // {
+    arg1 = removeAttrs v1 [ "strict-packages" ] // {
       specialArgs = (v1.specialArgs or {}) // {
         lib = overlay lib overlay-lib;
       };
@@ -33,6 +33,18 @@ in {
     debug = lib.mkDefault true;
     imports = lib.optionals (inputs ? systems) [
       { systems = lib.mkDefault (import inputs.systems); }
+    ] ++ lib.optionals (!strict-packages) [
+      # don't strict packages
+      ({ lib, flake-parts-lib, ... }: {
+        disabledModules = [ "${flake-parts}/modules/packages.nix" ];
+      } // flake-parts-lib.mkTransposedPerSystemModule {
+        name = "packages";
+        option = lib.mkOption {
+          type = with lib.types; lazyAttrsOf anything;
+          default = { };
+        };
+        file = ./packages.nix;
+      })
     ] ++ [
       arg2
       selfInputs.self.flakeModules.nixpkgs
