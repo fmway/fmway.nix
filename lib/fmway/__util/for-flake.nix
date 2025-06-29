@@ -51,16 +51,16 @@
       value = re.SharedModules (final // args // { inherit name; }) // (re.${name} or {});
     }) shareds);
     final = let
-      r = removeAttrs re [ "SharedModules" ] // lib.optionalAttrs (re ? SharedModules) gen // {
-        inherit modulesPath;
-      };
+      r = removeAttrs re [ "SharedModules" ] // lib.optionalAttrs (re ? SharedModules) gen;
     in lib.mapAttrs (k: v: v // {
       allWithout = exc: { imports = map (x: final.${k}.${x}) (lib.filter (x: lib.all (y: x != y) exc) (lib.attrNames v)); };
       all = final.${k}.allWithout [];
     } // lib.optionalAttrs (v ? default) {
       defaultWithout = v.default;
       default = final.${k}.defaultWithout [];
-    }) r;
+    }) r // {
+      inherit modulesPath;
+    };
   in final;
 
   genModules = root.genModules' [ "nixosModules" "nixDarwinModules" "homeManagerModules" ];
