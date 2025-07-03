@@ -1,9 +1,7 @@
 # Adapted from home-manager.
-{ internal, _file, lib, inputs, ... }: let
-  superInputs = inputs;
-in { flake-parts-lib, inputs, ... }: {
+{ flake-parts-lib, lib, inputs, ... }: {
   options.perSystem = flake-parts-lib.mkPerSystemOption ({ config, pkgs, system, ... }: let
-    pkgsPath = builtins.toPath (inputs.nixpkgs or superInputs.nixpkgs);
+    pkgsPath = builtins.toPath inputs.nixpkgs;
     isConfig = x: builtins.isAttrs x || builtins.isFunction x;
     optCall = f: x: if builtins.isFunction f then f x else f;
 
@@ -129,5 +127,4 @@ in { flake-parts-lib, inputs, ... }: {
       };
     };
   });
-  inherit _file;
 }

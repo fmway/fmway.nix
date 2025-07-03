@@ -1,7 +1,5 @@
-{ internal, _file lib, inputs, ... }: let
-  superInputs = inputs;
-in { flake-parts-lib, lib, inputs, ... }: let
-  devenv = inputs.devenv or superInputs.devenv;
+{ flake-parts-lib, lib, inputs, ... }: let
+  inherit (inputs) devenv;
   mkScript = { config, pkgs, ... }: let
     inherit (config) procfileScript test;
     up =
@@ -27,7 +25,6 @@ in { flake-parts-lib, lib, inputs, ... }: let
       (lib.attrValues replaces)
     default);
 in {
-  inherit _file;
   imports = [
     devenv.flakeModule
   ];
